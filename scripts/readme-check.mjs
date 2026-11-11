@@ -8,12 +8,15 @@
        same percentage width attribute, and the two widths add up to at most 100% (so they share a line,
        display at equal width and share one top)
      - all docs/compare images share one pixel width and one width="" attribute
+     - overlay palette: the header strip of every comparison image (top STRIP_PX rows) is gray plus at most
+       one accent hue, and that hue is the same across all images
      - Side-by-side captions share one structure: "**N. Title.** Without the skill, ... With it, ..."
      - one H1, no skipped heading levels, no heading directly followed by another heading of the same or higher level
      - table columns whose body cells are all numbers are right-aligned (---:)
    Exit: 0 = pass, 1 = failures. No dependencies. */
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
 
 const readme = process.argv[2] ?? "README.md";
 const root = path.dirname(path.resolve(readme));
@@ -43,6 +46,37 @@ for (const im of imgs) {
   check(fs.existsSync(file), `missing image: ${im.src}`);
   if (fs.existsSync(file)) sizes.set(im.src, pngSize(file));
 }
+
+// minimal PNG decoder (8-bit RGB/RGBA, non-interlaced) for the palette check
+const decodePng = (file) => {
+  const b = fs.readFileSync(file); let o = 8; const idat = []; let w, h, ct;
+  while (o < b.length) { const len = b.readUInt32BE(o), type = b.toString("ascii", o + 4, o + 8), d = b.subarray(o + 8, o + 8 + len);
+    if (type === "IHDR") { w = d.readUInt32BE(0); h = d.readUInt32BE(4); ct = d[9]; if (d[8] !== 8 || d[12] !== 0) return null; }
+    if (type === "IDAT") idat.push(d); if (type === "IEND") break; o += 12 + len; }
+  const bpp = ct === 6 ? 4 : ct === 2 ? 3 : 0; if (!bpp) return null;
+  const raw = zlib.inflateSync(Buffer.concat(idat)); const px = Buffer.alloc(w * h * bpp); const stride = w * bpp;
+  for (let y = 0; y < h; y++) { const f = raw[y * (stride + 1)], src = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    for (let x = 0; x < stride; x++) { const a = x >= bpp ? px[y * stride + x - bpp] : 0, up = y ? px[(y - 1) * stride + x] : 0, c = x >= bpp && y ? px[(y - 1) * stride + x - bpp] : 0;
+      const pr = () => { const p = a + up - c, pa = Math.abs(p - a), pb = Math.abs(p - up), pc = Math.abs(p - c); return pa <= pb && pa <= pc ? a : pb <= pc ? up : c; };
+      px[y * stride + x] = (src[x] + [0, a, up, (a + up) >> 1, pr()][f]) & 255; } }
+  return { w, h, bpp, px };
+};
+const hueOf = (r, g, b) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; if (mx < 40 || d / mx < 0.25 || d < 24) return null;
+  let hh = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (hh * 60 + 360) % 360; };
+const STRIP_PX = 120; // 60 css px at 2x
+const hues = new Map();
+for (const im of imgs.filter((im) => im.src.startsWith("docs/compare/"))) {
+  const img = decodePng(path.join(root, im.src)); if (!img) { check(false, `${im.src}: unsupported PNG format for the palette check`); continue; }
+  const bins = new Map();
+  for (let y = 0; y < Math.min(STRIP_PX, img.h); y++) for (let x = 0; x < img.w; x++) { const i = (y * img.w + x) * img.bpp; const hu = hueOf(img.px[i], img.px[i + 1], img.px[i + 2]); if (hu !== null) { const k = Math.round(hu / 30) % 12; bins.set(k, (bins.get(k) ?? 0) + 1); } }
+  const sig = [...bins].filter(([, n]) => n > 20).map(([k]) => k);
+  const spread = sig.length ? Math.min(...sig.map((k0) => Math.max(...sig.map((k) => Math.min((k - k0 + 12) % 12, (k0 - k + 12) % 12))))) : 0;
+  check(spread <= 1, `${im.src}: header strip uses more than one hue (30° bins ${sig.join(",")})`);
+  for (const k of sig) hues.set(k, (hues.get(k) ?? 0) + 1);
+}
+const allBins = [...hues.keys()];
+const allSpread = allBins.length ? Math.min(...allBins.map((k0) => Math.max(...allBins.map((k) => Math.min((k - k0 + 12) % 12, (k0 - k + 12) % 12))))) : 0;
+check(allSpread <= 1, `comparison images use more than one accent hue across the set (30° bins ${allBins.join(",")})`);
 
 // pairs
 const pairs = imgs.filter((im) => /-without(-skill)?\.png$/.test(im.src) || /without-skill\.png$/.test(im.src));

@@ -104,7 +104,7 @@ They look similar at a glance. That's the point: the difference is a badge 6.3px
 
 ## Side-by-side
 
-Round 3 pages at 1280px, re-rendered in headless Chromium. Left: without the skill. Right: with it. Every crop is the same size as its partner, and the lines follow one key: blue is the reference edge, green is on scale or aligned, red is off.
+Round 3 pages at 1280px, re-rendered in headless Chromium. Left: without the skill. Right: with it. Every crop is the same size as its partner, and the overlays use one key: gray dashed lines are the reference, orange is the measurement. A solid orange line with a filled tag is off; a dashed orange line with an outlined ✓ tag is aligned or on scale.
 
 **1. Badge on the title baseline.** Without the skill, the "3 plans active" chip sits 6.3px above the heading's baseline. With it, the chip shares the heading's baseline exactly (0.0px).
 
