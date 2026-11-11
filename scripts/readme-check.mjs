@@ -3,7 +3,10 @@
    Usage:  node scripts/readme-check.mjs [README.md]
    Checks:
      - every image the README references exists
-     - each *-without.png has a *-with.png partner with identical pixel dimensions, placed right after it
+     - each *-without.png has a *-with.png partner with identical pixel dimensions
+     - side by side: each pair is two <img> tags back to back on one line (nothing between them), with the
+       same percentage width attribute, and the two widths add up to at most 100% (so they share a line,
+       display at equal width and share one top)
      - all docs/compare images share one pixel width and one width="" attribute
      - Side-by-side captions share one structure: "**N. Title.** Without the skill, ... With it, ..."
      - one H1, no skipped heading levels, no heading directly followed by another heading of the same or higher level
@@ -28,11 +31,11 @@ const pngSize = (file) => {
 // images: markdown ![alt](src) and <img src="" width="">
 const imgs = [];
 for (const m of md.matchAll(/!\[[^\]]*\]\(([^)\s]+)\)|<img\b[^>]*>/g)) {
-  const tag = m[0];
+  const tag = m[0]; const end = m.index + tag.length;
   const src = m[1] ?? tag.match(/src="([^"]+)"/)?.[1];
   const width = tag.startsWith("<img") ? tag.match(/width="([^"]+)"/)?.[1] ?? null : null;
   if (!src || /^https?:/.test(src)) continue;
-  imgs.push({ src, width, index: m.index });
+  imgs.push({ src, width, index: m.index, end });
 }
 const sizes = new Map();
 for (const im of imgs) {
@@ -49,7 +52,10 @@ for (const a of pairs) {
   const b = imgs.find((im) => im.src === partnerSrc);
   check(!!b, `no partner for ${a.src}`);
   if (!b) continue;
-  check(imgs[i + 1] === b, `${partnerSrc} is not placed right after ${a.src}`);
+  check(imgs[i + 1] === b && md.slice(a.end, b.index) === "", `${partnerSrc} does not sit directly after ${a.src} on the same line`);
+  const pct = (w) => (w && /^\d+(\.\d+)?%$/.test(w) ? parseFloat(w) : NaN);
+  check(!Number.isNaN(pct(a.width)) && pct(a.width) === pct(b.width), `pair ${a.src} needs one percentage width on both images (got ${a.width}, ${b.width})`);
+  check(pct(a.width) + pct(b.width) <= 100, `pair ${a.src} is wider than 100% (${a.width} + ${b.width}) and would wrap`);
   const sa = sizes.get(a.src), sb = sizes.get(b.src);
   if (sa && sb) check(sa.w === sb.w && sa.h === sb.h, `pair size differs: ${a.src} ${sa.w}x${sa.h} vs ${b.src} ${sb.w}x${sb.h}`);
   check(a.width === b.width, `pair width attribute differs: ${a.src} ${a.width} vs ${b.src} ${b.width}`);

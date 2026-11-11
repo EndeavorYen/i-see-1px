@@ -104,37 +104,27 @@ They look similar at a glance. That's the point: the difference is a badge 6.3px
 
 ## Side-by-side
 
-Round 3 pages at 1280px, re-rendered in headless Chromium. Every crop is the same size as its partner, and the lines follow one key: blue is the reference edge, green is on scale or aligned, red is off.
+Round 3 pages at 1280px, re-rendered in headless Chromium. Left: without the skill. Right: with it. Every crop is the same size as its partner, and the lines follow one key: blue is the reference edge, green is on scale or aligned, red is off.
 
 **1. Badge on the title baseline.** Without the skill, the "3 plans active" chip sits 6.3px above the heading's baseline. With it, the chip shares the heading's baseline exactly (0.0px).
 
-<img src="docs/compare/01-chip-baseline-without.png" width="1000" alt="Badge on the title baseline, without skill">
-
-<img src="docs/compare/01-chip-baseline-with.png" width="1000" alt="Badge on the title baseline, with skill">
+<img src="docs/compare/01-chip-baseline-without.png" width="50%" alt="Badge on the title baseline, without skill"><img src="docs/compare/01-chip-baseline-with.png" width="50%" alt="Badge on the title baseline, with skill">
 
 **2. Numbers next to a wrapped name.** Without the skill, vertically centered cells push the numbers 10.5px below the first line of a two-line team name. With it, top-aligned cells keep the numbers on the first line (0.0px).
 
-<img src="docs/compare/02-wrapped-row-without.png" width="1000" alt="Numbers next to a wrapped name, without skill">
-
-<img src="docs/compare/02-wrapped-row-with.png" width="1000" alt="Numbers next to a wrapped name, with skill">
+<img src="docs/compare/02-wrapped-row-without.png" width="50%" alt="Numbers next to a wrapped name, without skill"><img src="docs/compare/02-wrapped-row-with.png" width="50%" alt="Numbers next to a wrapped name, with skill">
 
 **3. Form gaps on the scale.** Without the skill, label to field and field to message are both 6px, which is off the 4px scale. With it, both gaps are 4px, a `--space-*` token.
 
-<img src="docs/compare/03-form-gaps-without.png" width="1000" alt="Form gaps on the scale, without skill">
-
-<img src="docs/compare/03-form-gaps-with.png" width="1000" alt="Form gaps on the scale, with skill">
+<img src="docs/compare/03-form-gaps-without.png" width="50%" alt="Form gaps on the scale, without skill"><img src="docs/compare/03-form-gaps-with.png" width="50%" alt="Form gaps on the scale, with skill">
 
 **4. Line-heights on the grid.** Without the skill, a unitless `1.55` gives the intro 21.7px lines, so every line after the first drifts off the 4px grid. With it, the intro is 16px/24px and every line lands on the grid.
 
-<img src="docs/compare/04-line-height-without.png" width="1000" alt="Line-heights on the grid, without skill">
-
-<img src="docs/compare/04-line-height-with.png" width="1000" alt="Line-heights on the grid, with skill">
+<img src="docs/compare/04-line-height-without.png" width="50%" alt="Line-heights on the grid, without skill"><img src="docs/compare/04-line-height-with.png" width="50%" alt="Line-heights on the grid, with skill">
 
 **5. Popover offset.** Without the skill, the filter menu opens 6px below its trigger, which is off the 4px scale. With it, the menu opens 8px below, the `--popover-offset` token.
 
-<img src="docs/compare/05-popover-offset-without.png" width="1000" alt="Popover offset, without skill">
-
-<img src="docs/compare/05-popover-offset-with.png" width="1000" alt="Popover offset, with skill">
+<img src="docs/compare/05-popover-offset-without.png" width="50%" alt="Popover offset, without skill"><img src="docs/compare/05-popover-offset-with.png" width="50%" alt="Popover offset, with skill">
 
 None of these is dramatic on its own, and that's the trap: each one is easy to eyeball as "fine", and an agent that only looks at screenshots will happily call it done.
 
