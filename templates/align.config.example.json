@@ -1,0 +1,699 @@
+{
+ "_note": "Complete starting config. Rename the data-qa hooks to yours, repeat the 'repeat per' checks for every field/column, DELETE sections your UI does not have, and never delete a check just because it fails. Keep at least two viewports.",
+ "tolerance": 0.5,
+ "viewports": [
+  {
+   "width": 1280,
+   "height": 900
+  },
+  {
+   "width": 768,
+   "height": 1024
+  }
+ ],
+ "screenshots": "shots",
+ "pages": [
+  {
+   "name": "page",
+   "url": "index.html",
+   "noOverflow": true,
+   "checks": [
+    {
+     "_section": "page",
+     "type": "type",
+     "name": "type rhythm: line heights on the 4px grid, few sizes",
+     "selectors": [
+      "body *"
+     ],
+     "grid": 4,
+     "maxDistinct": 6
+    },
+    {
+     "_section": "page",
+     "type": "column",
+     "name": "main sections share left+right edges",
+     "selectors": [
+      "[data-qa=page-header]",
+      "[data-qa=toolbar]",
+      "[data-qa=cards]",
+      "[data-qa=table-section]",
+      "[data-qa=form]"
+     ],
+     "match": [
+      "left",
+      "right"
+     ]
+    },
+    {
+     "_section": "page",
+     "type": "noClip",
+     "name": "long text wraps, never clipped",
+     "selectors": [
+      "[data-qa=page-lead]",
+      "[data-qa=card-label]",
+      "[data-qa=td-name]",
+      "[data-qa=help]"
+     ]
+    },
+    {
+     "_section": "page",
+     "type": "row",
+     "name": "title and count share baseline",
+     "selectors": [
+      "[data-qa=page-title]",
+      "[data-qa=title-count]"
+     ],
+     "match": [
+      "baseline"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "button-group",
+     "type": "size",
+     "name": "buttons: control height on scale, hug label",
+     "selectors": [
+      "button:not([data-qa=nav-item])"
+     ],
+     "height": {
+      "min": 32,
+      "max": 48,
+      "step": 4
+     },
+     "hug": true
+    },
+    {
+     "_section": "button-group",
+     "type": "row",
+     "name": "toolbar controls same top+height",
+     "selectors": [
+      "[data-qa=toolbar] > *"
+     ],
+     "match": [
+      "top",
+      "height"
+     ]
+    },
+    {
+     "_section": "button-group",
+     "type": "gaps",
+     "name": "button gaps equal, on scale",
+     "selectors": [
+      "[data-qa=form-actions] > button"
+     ],
+     "axis": "x",
+     "scale": 4
+    },
+    {
+     "_section": "button-group",
+     "type": "row",
+     "name": "button labels share baseline",
+     "selectors": [
+      "[data-qa=form-actions] > button"
+     ],
+     "match": [
+      "baseline",
+      "top",
+      "height"
+     ]
+    },
+    {
+     "_section": "button-group",
+     "type": "center",
+     "name": "icon centred in button",
+     "pairs": [
+      "button",
+      ".icon, svg"
+     ],
+     "axis": "y"
+    },
+    {
+     "_section": "sidebar-nav",
+     "type": "distance",
+     "name": "sidebar left of main (desktop)",
+     "viewports": [
+      1280
+     ],
+     "from": {
+      "selector": "[data-qa=sidebar]",
+      "edge": "right"
+     },
+     "to": {
+      "selector": "[data-qa=main]",
+      "edge": "left"
+     },
+     "min": 0
+    },
+    {
+     "_section": "sidebar-nav",
+     "type": "row",
+     "name": "sidebar and main share top (desktop)",
+     "viewports": [
+      1280
+     ],
+     "selectors": [
+      "[data-qa=sidebar]",
+      "[data-qa=main]"
+     ],
+     "match": [
+      "top"
+     ]
+    },
+    {
+     "_section": "sidebar-nav",
+     "type": "distance",
+     "name": "nav above main (tablet)",
+     "viewports": [
+      768
+     ],
+     "from": {
+      "selector": "[data-qa=sidebar]",
+      "edge": "bottom"
+     },
+     "to": {
+      "selector": "[data-qa=main]",
+      "edge": "top"
+     },
+     "min": 0
+    },
+    {
+     "_section": "sidebar-nav",
+     "type": "column",
+     "name": "nav items one column: left, right, height (desktop)",
+     "viewports": [
+      1280
+     ],
+     "selectors": [
+      "[data-qa=nav-item]"
+     ],
+     "match": [
+      "left",
+      "right",
+      "height"
+     ]
+    },
+    {
+     "_section": "sidebar-nav",
+     "type": "row",
+     "name": "nav items one row: top, height (tablet)",
+     "viewports": [
+      768
+     ],
+     "selectors": [
+      "[data-qa=nav-item]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "groupBy": "row"
+    },
+    {
+     "_section": "sidebar-nav",
+     "type": "column",
+     "name": "nav icons share left, labels share text-left (desktop)",
+     "viewports": [
+      1280
+     ],
+     "selectors": [
+      "[data-qa=nav-icon]"
+     ],
+     "match": [
+      "left"
+     ]
+    },
+    {
+     "_section": "sidebar-nav",
+     "type": "column",
+     "name": "nav label text-left (desktop)",
+     "viewports": [
+      1280
+     ],
+     "selectors": [
+      "[data-qa=nav-label]"
+     ],
+     "match": [
+      "textLeft"
+     ]
+    },
+    {
+     "_section": "sidebar-nav",
+     "type": "row",
+     "name": "nav icon centred on label",
+     "selectors": [
+      "[data-qa=nav-icon]",
+      "[data-qa=nav-label]"
+     ],
+     "match": [
+      "centerY"
+     ],
+     "groupBy": "row",
+     "rowOf": "[data-qa=nav-item]"
+    },
+    {
+     "_section": "cards",
+     "type": "row",
+     "name": "cards in a row share top+height",
+     "selectors": [
+      "[data-qa=card]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "groupBy": "row"
+    },
+    {
+     "_section": "cards",
+     "type": "gaps",
+     "name": "card gaps equal, on scale",
+     "selectors": [
+      "[data-qa=card]"
+     ],
+     "axis": "x",
+     "scale": 4
+    },
+    {
+     "_section": "cards",
+     "type": "row",
+     "name": "value and unit share baseline",
+     "selectors": [
+      "[data-qa=card-value]",
+      "[data-qa=card-unit]"
+     ],
+     "match": [
+      "baseline"
+     ],
+     "groupBy": "row",
+     "rowOf": "[data-qa=card]"
+    },
+    {
+     "_section": "form",
+     "type": "row",
+     "name": "labels in one row share top",
+     "selectors": [
+      "[data-qa=label]"
+     ],
+     "match": [
+      "top"
+     ],
+     "groupBy": "row"
+    },
+    {
+     "_section": "form",
+     "type": "row",
+     "name": "fields in one row share top+height",
+     "selectors": [
+      "[data-qa=field]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "groupBy": "row"
+    },
+    {
+     "_section": "form",
+     "type": "column",
+     "name": "fields in one column share left+right",
+     "selectors": [
+      "[data-qa=field]"
+     ],
+     "match": [
+      "left",
+      "right"
+     ],
+     "groupBy": "column"
+    },
+    {
+     "_section": "form",
+     "type": "column",
+     "name": "label, field, error, help share left (repeat per field)",
+     "selectors": [
+      "[data-qa=label-email]",
+      "[data-qa=input-email]",
+      "[data-qa=error-email]",
+      "[data-qa=help-email]"
+     ],
+     "match": [
+      "left"
+     ]
+    },
+    {
+     "_section": "form",
+     "type": "distance",
+     "name": "label to field gap on scale (repeat per field)",
+     "from": {
+      "selector": "[data-qa=label-email]",
+      "edge": "bottom"
+     },
+     "to": {
+      "selector": "[data-qa=input-email]",
+      "edge": "top"
+     },
+     "min": 4,
+     "max": 12,
+     "scale": 4
+    },
+    {
+     "_section": "form",
+     "type": "distance",
+     "name": "field to message gap on scale",
+     "from": {
+      "selector": "[data-qa=input-email]",
+      "edge": "bottom"
+     },
+     "to": {
+      "selector": "[data-qa=error-email]",
+      "edge": "top"
+     },
+     "min": 4,
+     "max": 8,
+     "scale": 4
+    },
+    {
+     "_section": "form",
+     "type": "size",
+     "name": "checkbox square",
+     "selectors": [
+      "input[type=checkbox]"
+     ],
+     "width": {
+      "min": 16,
+      "max": 20,
+      "step": 4
+     },
+     "square": true
+    },
+    {
+     "_section": "form",
+     "type": "row",
+     "name": "checkbox centred on its label",
+     "selectors": [
+      "[data-qa=checkbox]",
+      "[data-qa=checkbox-label]"
+     ],
+     "match": [
+      "centerY"
+     ]
+    },
+    {
+     "_section": "form",
+     "type": "anyOf",
+     "name": "actions on the field column edge",
+     "checks": [
+      {
+       "type": "distance",
+       "from": {
+        "selector": "[data-qa=field]",
+        "edge": "right",
+        "pick": "max"
+       },
+       "to": {
+        "selector": "[data-qa=form-actions] > button",
+        "edge": "right",
+        "pick": "max"
+       },
+       "equals": 0
+      },
+      {
+       "type": "distance",
+       "from": {
+        "selector": "[data-qa=field]",
+        "edge": "left",
+        "pick": "min"
+       },
+       "to": {
+        "selector": "[data-qa=form-actions] > button",
+        "edge": "left",
+        "pick": "min"
+       },
+       "equals": 0
+      }
+     ]
+    },
+    {
+     "_section": "table",
+     "type": "row",
+     "name": "header cells share baseline",
+     "selectors": [
+      "thead th"
+     ],
+     "match": [
+      "baseline"
+     ]
+    },
+    {
+     "_section": "table",
+     "type": "column",
+     "name": "text column: header and cells share text-left",
+     "selectors": [
+      "[data-qa=th-name]",
+      "[data-qa=td-name]"
+     ],
+     "match": [
+      "textLeft"
+     ]
+    },
+    {
+     "_section": "table",
+     "type": "column",
+     "name": "number column: header and cells share text-right (repeat per column)",
+     "selectors": [
+      "[data-qa=th-amount]",
+      "[data-qa=td-amount]"
+     ],
+     "match": [
+      "textRight"
+     ]
+    },
+    {
+     "_section": "table",
+     "type": "style",
+     "name": "numbers use tabular figures",
+     "selectors": [
+      "[data-qa=td-amount]"
+     ],
+     "property": "font-variant-numeric",
+     "includes": "tabular-nums"
+    },
+    {
+     "_section": "table",
+     "type": "row",
+     "name": "cells in a row share first-line baseline",
+     "selectors": [
+      "tbody td"
+     ],
+     "match": [
+      "baseline"
+     ],
+     "groupBy": "row",
+     "rowOf": "tr"
+    },
+    {
+     "_section": "table",
+     "type": "row",
+     "name": "section title and link share baseline",
+     "selectors": [
+      "[data-qa=table-title]",
+      "[data-qa=table-link]"
+     ],
+     "match": [
+      "baseline"
+     ]
+    },
+    {
+     "_section": "table",
+     "type": "column",
+     "name": "section link right edge on table right",
+     "selectors": [
+      "[data-qa=table-link]",
+      "[data-qa=table]"
+     ],
+     "match": [
+      "right"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "popover-open",
+   "url": "index.html",
+   "noOverflow": true,
+   "actions": [
+    {
+     "click": "[data-qa=popover-trigger]"
+    }
+   ],
+   "checks": [
+    {
+     "_section": "popover",
+     "type": "distance",
+     "name": "popover offset from trigger",
+     "from": {
+      "selector": "[data-qa=popover-trigger]",
+      "edge": "bottom"
+     },
+     "to": {
+      "selector": "[data-qa=popover]",
+      "edge": "top"
+     },
+     "equals": 8
+    },
+    {
+     "_section": "popover",
+     "type": "column",
+     "name": "popover edge on trigger edge",
+     "selectors": [
+      "[data-qa=popover-trigger]",
+      "[data-qa=popover]"
+     ],
+     "match": [
+      "left"
+     ]
+    },
+    {
+     "_section": "popover",
+     "type": "column",
+     "name": "popover items share text-left and height",
+     "selectors": [
+      "[data-qa=popover-item]"
+     ],
+     "match": [
+      "textLeft",
+      "height"
+     ]
+    },
+    {
+     "_section": "popover",
+     "type": "type",
+     "name": "popover type rhythm",
+     "selectors": [
+      "[data-qa=popover] *"
+     ],
+     "grid": 4
+    }
+   ]
+  },
+  {
+   "name": "dialog-open",
+   "url": "index.html",
+   "noOverflow": true,
+   "actions": [
+    {
+     "click": "[data-qa=open-dialog]"
+    }
+   ],
+   "checks": [
+    {
+     "_section": "dialog",
+     "type": "centered",
+     "name": "dialog centred in viewport",
+     "selectors": [
+      "[data-qa=dialog]"
+     ],
+     "axis": "x"
+    },
+    {
+     "_section": "dialog",
+     "type": "column",
+     "name": "dialog content shares left",
+     "selectors": [
+      "[data-qa=dialog-title]",
+      "[data-qa=dialog-body]",
+      "[data-qa=dialog-label]",
+      "[data-qa=dialog-input]"
+     ],
+     "match": [
+      "left"
+     ]
+    },
+    {
+     "_section": "dialog",
+     "type": "column",
+     "name": "dialog text shares text-left",
+     "selectors": [
+      "[data-qa=dialog-title]",
+      "[data-qa=dialog-body]",
+      "[data-qa=dialog-label]"
+     ],
+     "match": [
+      "textLeft"
+     ]
+    },
+    {
+     "_section": "dialog",
+     "type": "size",
+     "name": "dialog buttons hug their labels",
+     "selectors": [
+      "[data-qa=dialog] button"
+     ],
+     "hug": true,
+     "height": {
+      "min": 32,
+      "max": 48,
+      "step": 4
+     }
+    },
+    {
+     "_section": "dialog",
+     "type": "row",
+     "name": "dialog buttons share top, height, baseline",
+     "selectors": [
+      "[data-qa=dialog] button"
+     ],
+     "match": [
+      "top",
+      "height",
+      "baseline"
+     ]
+    },
+    {
+     "_section": "dialog",
+     "type": "gaps",
+     "name": "dialog button gap on scale",
+     "selectors": [
+      "[data-qa=dialog] button"
+     ],
+     "axis": "x",
+     "scale": 4
+    },
+    {
+     "_section": "dialog",
+     "type": "anyOf",
+     "name": "dialog buttons on the field edge",
+     "checks": [
+      {
+       "type": "column",
+       "selectors": [
+        "[data-qa=dialog-confirm]",
+        "[data-qa=dialog-input]"
+       ],
+       "match": [
+        "right"
+       ]
+      },
+      {
+       "type": "column",
+       "selectors": [
+        "[data-qa=dialog-cancel]",
+        "[data-qa=dialog-input]"
+       ],
+       "match": [
+        "left"
+       ]
+      }
+     ]
+    },
+    {
+     "_section": "dialog",
+     "type": "noClip",
+     "name": "dialog body wraps",
+     "selectors": [
+      "[data-qa=dialog-body]"
+     ]
+    }
+   ]
+  }
+ ]
+}
