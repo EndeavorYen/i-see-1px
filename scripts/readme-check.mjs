@@ -9,7 +9,7 @@
        display at equal width and share one top)
      - all docs/compare images share one pixel width and one width="" attribute
      - overlay palette: the header strip of every comparison image (top STRIP_PX rows) is gray plus at most
-       one accent hue, and that hue is the same across all images
+       one accent hue, and that hue is the expected accent (EXPECTED_ACCENT) in every image
      - Side-by-side captions share one structure: "**N. Title.** Without the skill, ... With it, ..."
      - one H1, no skipped heading levels, no heading directly followed by another heading of the same or higher level
      - table columns whose body cells are all numbers are right-aligned (---:)
@@ -64,6 +64,9 @@ const decodePng = (file) => {
 const hueOf = (r, g, b) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; if (mx < 40 || d / mx < 0.25 || d < 24) return null;
   let hh = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (hh * 60 + 360) % 360; };
 const STRIP_PX = 120; // 60 css px at 2x
+const EXPECTED_ACCENT = "#7c6fb0"; // soft violet, the one measurement colour
+const expectedBin = (() => { const [r, g, b] = [1, 3, 5].map((i) => parseInt(EXPECTED_ACCENT.slice(i, i + 2), 16)); return Math.round(hueOf(r, g, b) / 30) % 12; })();
+const binDist = (a, b) => Math.min((a - b + 12) % 12, (b - a + 12) % 12);
 const hues = new Map();
 for (const im of imgs.filter((im) => im.src.startsWith("docs/compare/"))) {
   const img = decodePng(path.join(root, im.src)); if (!img) { check(false, `${im.src}: unsupported PNG format for the palette check`); continue; }
@@ -72,6 +75,7 @@ for (const im of imgs.filter((im) => im.src.startsWith("docs/compare/"))) {
   const sig = [...bins].filter(([, n]) => n > 20).map(([k]) => k);
   const spread = sig.length ? Math.min(...sig.map((k0) => Math.max(...sig.map((k) => Math.min((k - k0 + 12) % 12, (k0 - k + 12) % 12))))) : 0;
   check(spread <= 1, `${im.src}: header strip uses more than one hue (30° bins ${sig.join(",")})`);
+  check(sig.every((k) => binDist(k, expectedBin) <= 1), `${im.src}: header strip accent is not ${EXPECTED_ACCENT} (30° bins ${sig.join(",")}, expected ${expectedBin})`);
   for (const k of sig) hues.set(k, (hues.get(k) ?? 0) + 1);
 }
 const allBins = [...hues.keys()];
