@@ -5,7 +5,7 @@
 You asked for a tidy page. Your agent said "Done! Everything is aligned." Then you opened it and saw:
 
 - table numbers floating 10.5px below the first line of the name next to them,
-- a badge sitting 6px off the heading's baseline,
+- a badge sitting 6.3px off the heading's baseline,
 - a `6px` gap that belongs to no spacing scale known to humankind,
 - a line-height of `16.8px`, because `1.2` felt right at the time.
 
@@ -33,25 +33,30 @@ templates/tokens.css                  # spacing, type pairs, control heights, ov
 templates/spacing-lint.mjs            # lint: spacing scale, line-height, font-size
 templates/alignment-guard.mjs         # browser checks: edges, rows, baselines, gaps, overlays
 templates/align.config.example.json   # a complete example check config, one section per component
+scripts/readme-check.mjs              # this README's own layout check (we dogfood it)
 ```
 
 ## Install
 
 Copy the folder into your agent's skills directory.
 
-**Claude Code**
+### Claude Code
 
 ```bash
 git clone https://github.com/EndeavorYen/i-see-1px.git ~/.claude/skills/i-see-1px
 ```
 
-**Cursor** (per project)
+### Cursor (per project)
 
 ```bash
 git clone https://github.com/EndeavorYen/i-see-1px.git .cursor/skills/i-see-1px
 ```
 
-**Codex and other agents:** put the folder wherever your agent loads skills from, or point it at `SKILL.md` from your `AGENTS.md`.
+### Codex and other agents
+
+Put the folder wherever your agent loads skills from, or point it at `SKILL.md` from your `AGENTS.md`.
+
+### Requirements
 
 The guard needs Node 18+ and `playwright-core` in the project it checks (`npm i -D playwright-core`). Set `CHROME_PATH` if you don't have Playwright's bundled Chromium.
 
@@ -84,7 +89,7 @@ node scripts/alignment-guard.mjs align.config.json --screenshots shots
 A small experiment, not a peer-reviewed study: **n=1 per round**, same model, same prompt, and the only difference was whether the skill was loaded. Scoring used hidden checks the agents never saw.
 
 | Round | Task | Without skill | With skill |
-|---|---|---|---|
+|---:|---|---|---|
 | 1 | Fix an existing page | 82.9 / 100 | **100 / 100** |
 | 2 | Build from scratch, detailed spec | 100 / 100 (121/121 checks), 18.6 min | **100 / 100** (121/121 checks), **13.9 min**, left a reusable check script |
 | 3 | Build from scratch, vague brief, 127 hidden alignment checks | 23 / 100: 26 failed checks, 37 lint violations, still claimed done | **100 / 100**: 0 failed checks, 0 lint violations, its self-reported results matched the grader |
@@ -93,45 +98,43 @@ The gap is largest when the brief is vague, which is exactly when an agent is mo
 
 Round 3 at 1280px, without the skill (left) and with it (right):
 
-| Without skill | With skill |
-|---|---|
-| ![Without skill](docs/without-skill.png) | ![With skill](docs/with-skill.png) |
+<img src="docs/without-skill.png" width="50%" alt="Round 3 page, without skill"><img src="docs/with-skill.png" width="50%" alt="Round 3 page, with skill">
 
-They look similar at a glance. That's the point: the difference is a badge 6px off the baseline, numbers 10.5px below the line they belong to, 6px gaps and fractional line-heights. Small on their own, and all of it adds up. Close-ups below.
+They look similar at a glance. That's the point: the difference is a badge 6.3px off the baseline, numbers 10.5px below the line they belong to, 6px gaps and fractional line-heights. Small on their own, and all of it adds up. Close-ups below.
 
 ## Side-by-side
 
-Same round 3 pages at 1280px, re-rendered in headless Chromium, with guide lines drawn on top of the measured boxes. Left: without the skill. Right: with it.
+Round 3 pages at 1280px, re-rendered in headless Chromium. Every crop is the same size as its partner, and the lines follow one key: blue is the reference edge, green is on scale or aligned, red is off.
 
-**1. Badge on the title baseline.** Without the skill, the "3 plans active" chip sits 6.3px above the heading's baseline. With it, the two share a baseline exactly (0px).
+**1. Badge on the title baseline.** Without the skill, the "3 plans active" chip sits 6.3px above the heading's baseline. With it, the chip shares the heading's baseline exactly (0.0px).
 
-| Without skill | With skill |
-|---|---|
-| ![Chip baseline, without skill](docs/compare/01-chip-baseline-without.png) | ![Chip baseline, with skill](docs/compare/01-chip-baseline-with.png) |
+<img src="docs/compare/01-chip-baseline-without.png" width="1000" alt="Badge on the title baseline, without skill">
 
-**2. Numbers next to a wrapped name.** Without the skill, the table cells are vertically centered, so the numbers float 10.5px below the first line of a two-line team name. With it, cells are top-aligned and the numbers start on the first line.
+<img src="docs/compare/01-chip-baseline-with.png" width="1000" alt="Badge on the title baseline, with skill">
 
-| Without skill | With skill |
-|---|---|
-| ![Wrapped row, without skill](docs/compare/02-wrapped-row-without.png) | ![Wrapped row, with skill](docs/compare/02-wrapped-row-with.png) |
+**2. Numbers next to a wrapped name.** Without the skill, vertically centered cells push the numbers 10.5px below the first line of a two-line team name. With it, top-aligned cells keep the numbers on the first line (0.0px).
 
-**3. Form gaps on the scale.** Without the skill, label to field and field to message are both 6px, which isn't on the 4px scale (the dialog repeats it). With it, both are 4px, a `--space-*` token.
+<img src="docs/compare/02-wrapped-row-without.png" width="1000" alt="Numbers next to a wrapped name, without skill">
 
-| Without skill | With skill |
-|---|---|
-| ![Form gaps, without skill](docs/compare/03-form-gaps-without.png) | ![Form gaps, with skill](docs/compare/03-form-gaps-with.png) |
+<img src="docs/compare/02-wrapped-row-with.png" width="1000" alt="Numbers next to a wrapped name, with skill">
 
-**4. Line-heights on the grid.** Without the skill, a unitless `1.55` gives the intro paragraph 21.7px lines, so only the first line lands on the 4px grid (green) and the rest drift off it (red). Elsewhere on that page: 16.9px, 18.2px, 21px, 32.2px. With it, the paragraph is 16px/24px and every line lands on the grid.
+**3. Form gaps on the scale.** Without the skill, label to field and field to message are both 6px, which is off the 4px scale. With it, both gaps are 4px, a `--space-*` token.
 
-| Without skill | With skill |
-|---|---|
-| ![Line-height, without skill](docs/compare/04-line-height-without.png) | ![Line-height, with skill](docs/compare/04-line-height-with.png) |
+<img src="docs/compare/03-form-gaps-without.png" width="1000" alt="Form gaps on the scale, without skill">
 
-**5. Popover offset.** Without the skill, the filter menu opens 6px below its trigger. With it, the gap is 8px, the `--popover-offset` token.
+<img src="docs/compare/03-form-gaps-with.png" width="1000" alt="Form gaps on the scale, with skill">
 
-| Without skill | With skill |
-|---|---|
-| ![Popover, without skill](docs/compare/05-popover-offset-without.png) | ![Popover, with skill](docs/compare/05-popover-offset-with.png) |
+**4. Line-heights on the grid.** Without the skill, a unitless `1.55` gives the intro 21.7px lines, so every line after the first drifts off the 4px grid. With it, the intro is 16px/24px and every line lands on the grid.
+
+<img src="docs/compare/04-line-height-without.png" width="1000" alt="Line-heights on the grid, without skill">
+
+<img src="docs/compare/04-line-height-with.png" width="1000" alt="Line-heights on the grid, with skill">
+
+**5. Popover offset.** Without the skill, the filter menu opens 6px below its trigger, which is off the 4px scale. With it, the menu opens 8px below, the `--popover-offset` token.
+
+<img src="docs/compare/05-popover-offset-without.png" width="1000" alt="Popover offset, without skill">
+
+<img src="docs/compare/05-popover-offset-with.png" width="1000" alt="Popover offset, with skill">
 
 None of these is dramatic on its own, and that's the trap: each one is easy to eyeball as "fine", and an agent that only looks at screenshots will happily call it done.
 
