@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Usage &amp; billing · Northwind</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar" data-qa="topbar">
+    <div class="brand-slot">
+      <p class="brand">Northwind</p>
+    </div>
+    <div class="workspace-slot">
+      <p class="workspace">Workspace: Acme Research</p>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidebar" data-qa="sidebar" aria-label="Workspace">
+      <a class="nav-item" data-qa="nav-item" href="#overview">
+        <svg data-qa="nav-icon" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+          <rect x="3" y="3" width="6" height="6" rx="1"></rect>
+          <rect x="11" y="3" width="6" height="6" rx="1"></rect>
+          <rect x="3" y="11" width="6" height="6" rx="1"></rect>
+          <rect x="11" y="11" width="6" height="6" rx="1"></rect>
+        </svg>
+        <span data-qa="nav-label">Overview</span>
+      </a>
+      <a class="nav-item" data-qa="nav-item" href="#members">
+        <svg data-qa="nav-icon" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+          <circle cx="7" cy="7.5" r="2.2"></circle>
+          <circle cx="13.2" cy="8" r="1.8"></circle>
+          <path d="M3.2 15.2c.5-2.3 2.2-3.4 3.8-3.4s3.3 1.1 3.8 3.4"></path>
+          <path d="M11.2 14.8c.35-1.5 1.5-2.4 2.6-2.4 1.15 0 2.15.9 2.6 2.4"></path>
+        </svg>
+        <span data-qa="nav-label">Members</span>
+      </a>
+      <a class="nav-item" data-qa="nav-item" href="#usage" aria-current="page">
+        <svg data-qa="nav-icon" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+          <rect x="3" y="4" width="14" height="12" rx="1.5"></rect>
+          <path d="M3 8.5h14"></path>
+          <path d="M6 12h4.5"></path>
+        </svg>
+        <span data-qa="nav-label">Usage &amp; billing</span>
+      </a>
+      <a class="nav-item" data-qa="nav-item" href="#integrations">
+        <svg data-qa="nav-icon" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+          <circle cx="5" cy="10" r="2"></circle>
+          <circle cx="15" cy="5.5" r="2"></circle>
+          <circle cx="15" cy="14.5" r="2"></circle>
+          <path d="M7 10h4.2"></path>
+          <path d="M11.2 10 13.2 7"></path>
+          <path d="M11.2 10 13.2 13"></path>
+        </svg>
+        <span data-qa="nav-label">Integrations</span>
+      </a>
+      <a class="nav-item" data-qa="nav-item" href="#settings">
+        <svg data-qa="nav-icon" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+          <circle cx="10" cy="10" r="2.3"></circle>
+          <path d="M10 2.8v2.1M10 15.1v2.1M2.8 10h2.1M15.1 10h2.1M4.7 4.7l1.5 1.5M13.8 13.8l1.5 1.5M15.3 4.7l-1.5 1.5M6.2 13.8l-1.5 1.5"></path>
+        </svg>
+        <span data-qa="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <main data-qa="main" id="usage">
+      <div data-qa="page-header">
+        <div class="title-row">
+          <h1 data-qa="page-title">Usage &amp; billing</h1>
+          <p data-qa="title-count">3 plans active</p>
+        </div>
+        <p data-qa="page-lead">Seats, storage and invoices for every team in this workspace. Numbers refresh every hour; invoices are issued on the first business day of each month and can be exported for your finance system.</p>
+      </div>
+
+      <section class="stats" data-qa="stats" aria-label="Usage summary">
+        <article class="stat" data-qa="stat">
+          <p class="stat-label" data-qa="stat-label">Seats in use</p>
+          <p class="stat-figure">
+            <span class="stat-value" data-qa="stat-value">148</span>
+            <span class="stat-unit" data-qa="stat-unit">of 200</span>
+          </p>
+        </article>
+        <article class="stat" data-qa="stat">
+          <p class="stat-label" data-qa="stat-label">Storage used across all shared drives and project archives this month</p>
+          <p class="stat-figure">
+            <span class="stat-value" data-qa="stat-value">1.82</span>
+            <span class="stat-unit" data-qa="stat-unit">TB</span>
+          </p>
+        </article>
+        <article class="stat" data-qa="stat">
+          <p class="stat-label" data-qa="stat-label">Next invoice</p>
+          <p class="stat-figure">
+            <span class="stat-value" data-qa="stat-value">$4,210</span>
+            <span class="stat-unit" data-qa="stat-unit">USD</span>
+          </p>
+        </article>
+      </section>
+
+      <div class="toolbar" data-qa="toolbar">
+        <input class="search" data-qa="search" type="search" placeholder="Search teams" aria-label="Search teams">
+        <div class="filter">
+          <button class="btn btn-secondary" data-qa="filter-trigger" type="button" id="plan-filter-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="plan-filter">
+            Filter: All plans
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="M4 6.2 8 10.2 12 6.2"></path>
+            </svg>
+          </button>
+          <div class="popover" data-qa="popover" id="plan-filter" role="menu" aria-labelledby="plan-filter-trigger" hidden>
+            <button class="popover-item" data-qa="popover-item" type="button" role="menuitem" aria-current="true">All plans</button>
+            <button class="popover-item" data-qa="popover-item" type="button" role="menuitem">Starter</button>
+            <button class="popover-item" data-qa="popover-item" type="button" role="menuitem">Team</button>
+            <button class="popover-item" data-qa="popover-item" type="button" role="menuitem">Enterprise</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" data-qa="open-dialog" type="button">Invite member</button>
+      </div>
+
+      <section class="table-section" data-qa="table-section">
+        <div class="table-head" data-qa="table-head">
+          <h2 data-qa="table-title">Seats by team</h2>
+          <a class="table-link" data-qa="table-link" href="seats.csv" download="seats-by-team.csv">Export CSV</a>
+        </div>
+        <table data-qa="table">
+          <colgroup>
+            <col class="col-team">
+            <col class="col-seats">
+            <col class="col-usage">
+            <col class="col-amount">
+          </colgroup>
+          <thead>
+            <tr>
+              <th data-qa="th-team" scope="col">Team</th>
+              <th class="num" data-qa="th-seats" scope="col">Seats</th>
+              <th class="num" data-qa="th-usage" scope="col">Usage (GB)</th>
+              <th class="num" data-qa="th-amount" scope="col">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-qa="row">
+              <td data-qa="td-team">Design</td>
+              <td class="num" data-qa="td-seats">12</td>
+              <td class="num" data-qa="td-usage">318.4</td>
+              <td class="num" data-qa="td-amount">$360.00</td>
+            </tr>
+            <tr data-qa="row">
+              <td data-qa="td-team">Platform engineering, developer productivity tooling, internal build infrastructure and the shared services that support every regional data centre</td>
+              <td class="num" data-qa="td-seats">64</td>
+              <td class="num" data-qa="td-usage">1,104.9</td>
+              <td class="num" data-qa="td-amount">$1,920.00</td>
+            </tr>
+            <tr data-qa="row">
+              <td data-qa="td-team">Research</td>
+              <td class="num" data-qa="td-seats">21</td>
+              <td class="num" data-qa="td-usage">87.0</td>
+              <td class="num" data-qa="td-amount">$630.00</td>
+            </tr>
+            <tr data-qa="row">
+              <td data-qa="td-team">Sales</td>
+              <td class="num" data-qa="td-seats">9</td>
+              <td class="num" data-qa="td-usage">4.2</td>
+              <td class="num" data-qa="td-amount">$270.00</td>
+            </tr>
+            <tr data-qa="row">
+              <td data-qa="td-team">Support</td>
+              <td class="num" data-qa="td-seats">31</td>
+              <td class="num" data-qa="td-usage">211.7</td>
+              <td class="num" data-qa="td-amount">$930.00</td>
+            </tr>
+            <tr data-qa="row">
+              <td data-qa="td-team">Operations</td>
+              <td class="num" data-qa="td-seats">11</td>
+              <td class="num" data-qa="td-usage">96.3</td>
+              <td class="num" data-qa="td-amount">$100.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <form class="form" data-qa="form" novalidate>
+        <h2 data-qa="form-title">Billing contact</h2>
+
+        <div class="field-group">
+          <label data-qa="label-email" for="billing-email">Billing email</label>
+          <div class="field" data-qa="field">
+            <input class="control" data-qa="input-email" id="billing-email" name="billing-email" type="email" value="finance@gmail" aria-invalid="true" aria-describedby="email-error email-help" autocomplete="email">
+          </div>
+          <p class="error" data-qa="error-email" id="email-error">Enter an email address that ends in your company domain.</p>
+          <p class="help" data-qa="help-email" id="email-help">Invoices and payment receipts go here.</p>
+        </div>
+
+        <div class="field-group">
+          <label data-qa="label-company" for="company-name">Company name</label>
+          <div class="field" data-qa="field">
+            <input class="control" data-qa="input-company" id="company-name" name="company-name" type="text" value="Acme Research Ltd." aria-describedby="company-help" autocomplete="organization">
+          </div>
+          <p class="help" data-qa="help-company" id="company-help">Shown on every invoice exactly as written here, including punctuation and legal suffixes such as Ltd. or GmbH.</p>
+        </div>
+
+        <div class="field-group">
+          <label data-qa="label-plan" for="plan">Plan</label>
+          <div class="field" data-qa="field">
+            <select class="control" data-qa="input-plan" id="plan" name="plan" aria-describedby="plan-help">
+              <option>Team (annual)</option>
+              <option>Team (monthly)</option>
+              <option>Enterprise</option>
+            </select>
+          </div>
+          <p class="help" data-qa="help-plan" id="plan-help">Changes apply from the next billing cycle.</p>
+        </div>
+
+        <div class="check-row">
+          <input data-qa="checkbox" id="invoice-copy" name="invoice-copy" type="checkbox" checked>
+          <label data-qa="checkbox-label" for="invoice-copy">Email me a copy of every invoice</label>
+        </div>
+
+        <div class="form-actions" data-qa="form-actions">
+          <button class="btn btn-secondary" data-qa="form-cancel" type="button">Cancel</button>
+          <button class="btn btn-primary" data-qa="form-submit" type="button">Save contact</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <dialog class="dialog" data-qa="dialog" aria-labelledby="invite-title">
+    <h2 data-qa="dialog-title" id="invite-title">Invite a member</h2>
+    <p data-qa="dialog-body">They will get an email with a link that expires in seven days. New members join with the Viewer role; you can change their role and team after they accept the invitation.</p>
+    <div class="dialog-field">
+      <label data-qa="dialog-label" for="invite-email">Email address</label>
+      <input class="control" data-qa="dialog-input" id="invite-email" name="invite-email" type="email" placeholder="name@company.com" autocomplete="email">
+    </div>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" data-qa="dialog-cancel" type="button">Cancel</button>
+      <button class="btn btn-primary" data-qa="dialog-confirm" type="button">Send invite</button>
+    </div>
+  </dialog>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

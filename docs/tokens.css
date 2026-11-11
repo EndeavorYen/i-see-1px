@@ -1,0 +1,69 @@
+/* Layout and type tokens. The only file allowed to hold raw px for spacing, sizes, offsets and type.
+   Load this first. Every component sheet uses var(--...) from here.
+   Rules: spacing is a 4px step. Line heights are px on the same 4px grid, paired with a font size.
+   A value off this scale needs a same-line "px-ok: <reason>" comment.
+   Breakpoints cannot be CSS variables inside @media; keep them in one place (see --bp-* below) and
+   list the same widths in the guard config's "viewports". */
+:root {
+  /* spacing: 4px scale */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --hairline: 2px; /* px-ok: seams only (grid hairlines, segmented tracks) */
+
+  /* type scale: each size has one line height on the 4px grid. Use them as pairs. */
+  --fs-xs: 12px;  --lh-xs: 16px;   /* captions, help text, badges */
+  --fs-sm: 14px;  --lh-sm: 20px;   /* body, controls, table cells */
+  --fs-md: 16px;  --lh-md: 24px;   /* lead text */
+  --fs-lg: 20px;  --lh-lg: 28px;   /* section titles */
+  --fs-xl: 24px;  --lh-xl: 32px;   /* dialog titles */
+  --fs-2xl: 32px; --lh-2xl: 40px;  /* page titles, big numbers */
+  --numeric: tabular-nums;         /* font-variant-numeric for every number column or counter */
+
+  /* control heights: every button, input, select, chip in a row uses one of these */
+  --control-sm: 32px;
+  --control-md: 40px;
+  --control-lg: 48px;
+  --hit-min: 44px; /* coarse-pointer hit target; draw the visual box at a control height */
+
+  /* icons sit in a fixed square slot, centred */
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+
+  /* columns */
+  --content-col: 960px;
+  --sidebar-w: 240px;
+  --page-pad: var(--space-6);
+  --gutter: var(--space-6);
+
+  /* overlays */
+  --popover-offset: var(--space-2); /* gap between a trigger and its menu/popover, every direction */
+  --dialog-pad: var(--space-6);
+  --dialog-w: 480px;
+
+  /* corners */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+
+  /* breakpoints (documentation only; copy the numbers into @media and into the guard viewports) */
+  --bp-tablet: 768px;
+  --bp-desktop: 1280px;
+}
+
+/* Helpers that apply the tokens. Copy what you need into the project's base sheet. */
+html { font-size: var(--fs-sm); line-height: var(--lh-sm); }
+input, button, select, textarea { font-family: inherit; font-size: var(--fs-sm); line-height: var(--lh-sm); }
+.content-col { width: min(var(--content-col), 100%); margin-inline: auto; }
+.icon { flex: none; display: block; width: var(--icon-md); height: var(--icon-md); }
+.num { font-variant-numeric: var(--numeric); text-align: end; }

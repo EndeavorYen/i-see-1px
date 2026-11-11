@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Usage &amp; billing · Northwind</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f6e56'/%3E%3Cpath fill='white' d='M16 5.2 18.2 12h7.1l-5.7 4.2 2.2 6.8L16 18.8 10.2 23l2.2-6.8L6.7 12h7.1z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar" data-qa="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#14856a"/>
+        <path fill="#fff" d="M12 4.4 13.8 9.6h5.6l-4.5 3.3 1.7 5.3L12 15l-4.6 3.2 1.7-5.3-4.5-3.3h5.6z"/>
+      </svg>
+      <span class="brand-name">Northwind</span>
+    </div>
+    <p class="workspace">Workspace: Acme Research</p>
+  </header>
+
+  <div class="app">
+    <div class="sidebar-col">
+    <nav class="sidebar" data-qa="sidebar" aria-label="Workspace">
+      <ul class="nav-list">
+        <li>
+          <a class="nav-item" data-qa="nav-item" href="#overview" id="overview">
+            <svg data-qa="nav-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/>
+              <rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/>
+              <rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/>
+              <rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>
+            </svg>
+            <span data-qa="nav-label">Overview</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" data-qa="nav-item" href="#members" id="members">
+            <svg data-qa="nav-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <circle cx="9" cy="8" r="2.8"/>
+              <path d="M3.8 19c.7-2.7 2.8-4.2 5.2-4.2s4.5 1.5 5.2 4.2"/>
+              <circle cx="17.1" cy="9" r="2.1"/>
+              <path d="M16 14.6c1.8.35 3.1 1.5 3.7 3.5"/>
+            </svg>
+            <span data-qa="nav-label">Members</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" data-qa="nav-item" href="#usage" id="usage" aria-current="page">
+            <svg data-qa="nav-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path d="M7 3.8h10a1 1 0 0 1 1 1V20l-2.1-1.25L13.8 20l-1.8-1.25L10.2 20 8.1 18.75 6 20V4.8a1 1 0 0 1 1-1z"/>
+              <path d="M9 8.2h6M9 12h6M9 15.8h3.8"/>
+            </svg>
+            <span data-qa="nav-label">Usage &amp; billing</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" data-qa="nav-item" href="#integrations" id="integrations">
+            <svg data-qa="nav-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <circle cx="6" cy="12" r="2.2"/>
+              <circle cx="18" cy="6.5" r="2.2"/>
+              <circle cx="18" cy="17.5" r="2.2"/>
+              <path d="M8.1 12h5.1M13.8 10.4 16 8.3M13.8 13.6 16 15.7"/>
+            </svg>
+            <span data-qa="nav-label">Integrations</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" data-qa="nav-item" href="#settings" id="settings">
+            <svg data-qa="nav-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 3.6v2.1M12 18.3v2.1M4.9 6.7l1.5 1.5M17.6 15.8l1.5 1.5M3.6 12h2.1M18.3 12h2.1M4.9 17.3l1.5-1.5M17.6 8.2l1.5-1.5"/>
+            </svg>
+            <span data-qa="nav-label">Settings</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    </div>
+
+    <main class="main" data-qa="main">
+      <header class="page-header" data-qa="page-header">
+        <div class="title-row">
+          <h1 data-qa="page-title">Usage &amp; billing</h1>
+          <p data-qa="title-count">3 plans active</p>
+        </div>
+        <p class="page-lead" data-qa="page-lead">Seats, storage and invoices for every team in this workspace. Numbers refresh every hour; invoices are issued on the first business day of each month and can be exported for your finance system.</p>
+      </header>
+
+      <section class="stats" data-qa="stats" aria-label="Billing summary">
+        <article class="stat" data-qa="stat">
+          <p class="stat-label" data-qa="stat-label">Seats in use</p>
+          <p class="stat-figure">
+            <span class="stat-value" data-qa="stat-value">148</span>
+            <span class="stat-unit" data-qa="stat-unit">of 200</span>
+          </p>
+        </article>
+        <article class="stat" data-qa="stat">
+          <p class="stat-label" data-qa="stat-label">Storage used across all shared drives and project archives this month</p>
+          <p class="stat-figure">
+            <span class="stat-value" data-qa="stat-value">1.82</span>
+            <span class="stat-unit" data-qa="stat-unit">TB</span>
+          </p>
+        </article>
+        <article class="stat" data-qa="stat">
+          <p class="stat-label" data-qa="stat-label">Next invoice</p>
+          <p class="stat-figure">
+            <span class="stat-value" data-qa="stat-value">$4,210</span>
+            <span class="stat-unit" data-qa="stat-unit">USD</span>
+          </p>
+        </article>
+      </section>
+
+      <div class="toolbar" data-qa="toolbar">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.25"/>
+            <path d="M15.8 15.8 20.2 20.2"/>
+          </svg>
+          <input data-qa="search" type="search" placeholder="Search teams" aria-label="Search teams" autocomplete="off">
+        </div>
+        <div class="filter">
+          <button type="button" class="btn btn-secondary" data-qa="filter-trigger" aria-expanded="false" aria-controls="plan-menu" aria-haspopup="menu">Filter: All plans<svg class="chevron" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3.5 6 8 10.5 12.5 6"/></svg></button>
+          <div id="plan-menu" class="menu" data-qa="popover" role="menu" aria-label="Plans" hidden>
+            <button type="button" class="menu-item" role="menuitemradio" aria-checked="true" data-qa="popover-item">All plans</button>
+            <button type="button" class="menu-item" role="menuitemradio" aria-checked="false" data-qa="popover-item">Starter</button>
+            <button type="button" class="menu-item" role="menuitemradio" aria-checked="false" data-qa="popover-item">Team</button>
+            <button type="button" class="menu-item" role="menuitemradio" aria-checked="false" data-qa="popover-item">Enterprise</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" data-qa="open-dialog">Invite member</button>
+      </div>
+
+      <section class="card table-section" data-qa="table-section" aria-labelledby="seats-title">
+        <div class="table-head" data-qa="table-head">
+          <h2 id="seats-title" data-qa="table-title">Seats by team</h2>
+          <a class="table-link" data-qa="table-link" href="seats-by-team.csv" download="seats-by-team.csv">Export CSV</a>
+        </div>
+        <div class="table-scroll">
+          <table data-qa="table">
+            <thead>
+              <tr>
+                <th data-qa="th-team" scope="col">Team</th>
+                <th data-qa="th-seats" scope="col">Seats</th>
+                <th data-qa="th-usage" scope="col">Usage (GB)</th>
+                <th data-qa="th-amount" scope="col">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-qa="row">
+                <td data-qa="td-team">Design</td>
+                <td data-qa="td-seats">12</td>
+                <td data-qa="td-usage">318.4</td>
+                <td data-qa="td-amount">$360.00</td>
+              </tr>
+              <tr data-qa="row">
+                <td data-qa="td-team">Platform engineering, developer productivity tooling, internal build infrastructure and the shared services that support every regional data centre</td>
+                <td data-qa="td-seats">64</td>
+                <td data-qa="td-usage">1,104.9</td>
+                <td data-qa="td-amount">$1,920.00</td>
+              </tr>
+              <tr data-qa="row">
+                <td data-qa="td-team">Research</td>
+                <td data-qa="td-seats">21</td>
+                <td data-qa="td-usage">87.0</td>
+                <td data-qa="td-amount">$630.00</td>
+              </tr>
+              <tr data-qa="row">
+                <td data-qa="td-team">Sales</td>
+                <td data-qa="td-seats">9</td>
+                <td data-qa="td-usage">4.2</td>
+                <td data-qa="td-amount">$270.00</td>
+              </tr>
+              <tr data-qa="row">
+                <td data-qa="td-team">Support</td>
+                <td data-qa="td-seats">31</td>
+                <td data-qa="td-usage">211.7</td>
+                <td data-qa="td-amount">$930.00</td>
+              </tr>
+              <tr data-qa="row">
+                <td data-qa="td-team">Operations</td>
+                <td data-qa="td-seats">11</td>
+                <td data-qa="td-usage">96.3</td>
+                <td data-qa="td-amount">$100.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card form-card">
+        <form data-qa="form" aria-labelledby="billing-title" action="index.html" method="post">
+          <h2 id="billing-title" data-qa="form-title">Billing contact</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label data-qa="label-email" for="billing-email">Billing email</label>
+              <input id="billing-email" data-qa="input-email" type="email" inputmode="email" autocomplete="email" spellcheck="false" value="finance@gmail" aria-invalid="true" aria-describedby="billing-email-error billing-email-help">
+              <p id="billing-email-error" class="field-error" data-qa="error-email" role="alert">Enter an email address that ends in your company domain.</p>
+              <p id="billing-email-help" class="field-help" data-qa="help-email">Invoices and payment receipts go here.</p>
+            </div>
+            <div class="field">
+              <label data-qa="label-company" for="billing-company">Company name</label>
+              <input id="billing-company" data-qa="input-company" type="text" autocomplete="organization" value="Acme Research Ltd." aria-describedby="billing-company-help">
+              <p id="billing-company-help" class="field-help" data-qa="help-company">Shown on every invoice exactly as written here, including punctuation and legal suffixes such as Ltd. or GmbH.</p>
+            </div>
+            <div class="field">
+              <label data-qa="label-plan" for="billing-plan">Plan</label>
+              <select id="billing-plan" data-qa="input-plan" aria-describedby="billing-plan-help">
+                <option selected>Team (annual)</option>
+                <option>Team (monthly)</option>
+                <option>Enterprise</option>
+              </select>
+              <p id="billing-plan-help" class="field-help" data-qa="help-plan">Changes apply from the next billing cycle.</p>
+            </div>
+            <label class="check field-span">
+              <input data-qa="checkbox" type="checkbox" name="invoice-copy" checked>
+              <span data-qa="checkbox-label">Email me a copy of every invoice</span>
+            </label>
+            <div class="form-actions field-span">
+              <button type="button" class="btn btn-secondary" data-qa="form-cancel">Cancel</button>
+              <button type="button" class="btn btn-primary" data-qa="form-submit">Save contact</button>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <dialog data-qa="dialog" aria-labelledby="invite-title" aria-describedby="invite-body" closedby="any">
+    <form method="dialog" class="dialog-form">
+      <h2 id="invite-title" data-qa="dialog-title">Invite a member</h2>
+      <p id="invite-body" class="dialog-body" data-qa="dialog-body">They will get an email with a link that expires in seven days. New members join with the Viewer role; you can change their role and team after they accept the invitation.</p>
+      <div class="field dialog-field">
+        <label data-qa="dialog-label" for="invite-email">Email address</label>
+        <input id="invite-email" data-qa="dialog-input" type="email" inputmode="email" autocomplete="email" placeholder="name@company.com" spellcheck="false">
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-secondary" data-qa="dialog-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary" data-qa="dialog-confirm" value="confirm">Send invite</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

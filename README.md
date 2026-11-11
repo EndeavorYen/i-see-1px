@@ -2,6 +2,8 @@
 
 > A skill to stop your coding agent from saying the layout is done when it's one pixel off.
 
+**Live demo:** [endeavoryen.github.io/i-see-1px](https://endeavoryen.github.io/i-see-1px/), both pages side by side with the measurements drawn live.
+
 You asked for a tidy page. Your agent said "Done! Everything is aligned." Then you opened it and saw:
 
 - table numbers floating 10.5px below the first line of the name next to them,
@@ -34,6 +36,8 @@ templates/spacing-lint.mjs            # lint: spacing scale, line-height, font-s
 templates/alignment-guard.mjs         # browser checks: edges, rows, baselines, gaps, overlays
 templates/align.config.example.json   # a complete example check config, one section per component
 scripts/readme-check.mjs              # this README's own layout check (we dogfood it)
+scripts/site-check.mjs                # lint + guard for the demo site in docs/ (dogfood too)
+docs/                                 # the GitHub Pages site and the two live demo pages
 ```
 
 ## Install
@@ -82,6 +86,14 @@ You can run the tools yourself too:
 ```bash
 node scripts/spacing-lint.mjs src/styles
 node scripts/alignment-guard.mjs align.config.json --screenshots shots
+```
+
+### Checking this repo
+
+```bash
+npm i --no-save playwright-core
+node scripts/readme-check.mjs   # README pairs, widths, captions, headings, palette
+node scripts/site-check.mjs     # spacing lint + alignment guard on docs/index.html at 1280 and 768
 ```
 
 ## Benchmark

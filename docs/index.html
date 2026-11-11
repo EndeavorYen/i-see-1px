@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>i-see-1px: live without / with comparison</title>
+  <meta name="description" content="A skill to stop your coding agent from saying the layout is done when it's one pixel off.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <header class="wrap hero" data-qa="hero">
+    <h1 class="hero-title" data-qa="hero-title">i-see-1px</h1>
+    <p class="tagline" data-qa="tagline">A skill to stop your coding agent from saying the layout is done when it's one pixel off.</p>
+    <div class="hero-actions" data-qa="hero-actions">
+      <a class="btn" data-qa="btn" href="https://github.com/EndeavorYen/i-see-1px">View on GitHub</a>
+      <code class="install" data-qa="install">git clone https://github.com/EndeavorYen/i-see-1px.git ~/.claude/skills/i-see-1px</code>
+    </div>
+  </header>
+
+  <main>
+    <section class="wrap section" data-qa="viewer" aria-labelledby="viewer-title">
+      <h2 class="section-title" data-qa="section-title" id="viewer-title">Without vs with, live</h2>
+      <p class="lead" data-qa="lead">Two real submissions from the same vague brief, same model, same prompt. The only difference is whether the skill was loaded. Both pages run live below; the overlay is measured from their DOM as you watch.</p>
+
+      <div class="toolbar" data-qa="toolbar">
+        <div class="seg" role="group" aria-label="Viewport width" data-qa="seg">
+          <button class="btn" data-qa="btn" type="button" data-width="1280" aria-pressed="true">1280</button>
+          <button class="btn" data-qa="btn" type="button" data-width="768" aria-pressed="false">768</button>
+        </div>
+        <button class="btn" data-qa="btn" type="button" id="overlay-toggle" aria-pressed="true">Overlay</button>
+        <button class="btn" data-qa="btn" type="button" id="zoom-toggle" aria-pressed="false">Zoom to spot</button>
+      </div>
+
+      <div class="spots" role="group" aria-label="Spots" data-qa="spots">
+        <button class="btn" data-qa="spot" type="button" data-spot="chip" aria-pressed="true">1. Chip baseline</button>
+        <button class="btn" data-qa="spot" type="button" data-spot="wrapped" aria-pressed="false">2. Wrapped row</button>
+        <button class="btn" data-qa="spot" type="button" data-spot="gaps" aria-pressed="false">3. Form gaps</button>
+        <button class="btn" data-qa="spot" type="button" data-spot="lineheight" aria-pressed="false">4. Line height</button>
+        <button class="btn" data-qa="spot" type="button" data-spot="popover" aria-pressed="false">5. Popover offset</button>
+      </div>
+
+      <p class="caption" data-qa="caption" id="caption" aria-live="polite"></p>
+
+      <div class="frames" data-qa="frames">
+        <figure class="frame" data-qa="frame" data-side="without">
+          <figcaption class="strip" data-qa="strip">
+            <span class="strip-title" data-qa="strip-title">Without skill</span>
+            <span class="tags" data-qa="tags"></span>
+          </figcaption>
+          <div class="viewport" data-qa="viewport"><iframe title="Demo page built without the skill" src="demo/without/index.html" loading="eager"></iframe></div>
+        </figure>
+        <figure class="frame" data-qa="frame" data-side="with">
+          <figcaption class="strip" data-qa="strip">
+            <span class="strip-title" data-qa="strip-title">With skill</span>
+            <span class="tags" data-qa="tags"></span>
+          </figcaption>
+          <div class="viewport" data-qa="viewport"><iframe title="Demo page built with the skill" src="demo/with/index.html" loading="eager"></iframe></div>
+        </figure>
+      </div>
+      <p class="key" data-qa="key">Gray dashed lines are the reference; soft violet is the measurement. A solid line with a filled tag is off; a dashed line with an outlined ✓ tag is aligned or on scale.</p>
+    </section>
+
+    <section class="wrap section" data-qa="bench" aria-labelledby="bench-title">
+      <h2 class="section-title" data-qa="section-title" id="bench-title">Benchmark</h2>
+      <p class="lead" data-qa="lead">A small experiment, not a study: n=1 per round, same model, same prompt, scored by hidden checks the agents never saw.</p>
+      <table class="bench" data-qa="bench-table">
+        <thead>
+          <tr><th class="num" data-qa="th" scope="col">Round</th><th data-qa="th" scope="col">Task</th><th data-qa="th" scope="col">Without skill</th><th data-qa="th" scope="col">With skill</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="num" data-qa="td-num">1</td><td data-qa="td">Fix an existing page</td><td data-qa="td">82.9 / 100</td><td data-qa="td"><strong>100 / 100</strong></td></tr>
+          <tr><td class="num" data-qa="td-num">2</td><td data-qa="td">Build from scratch, detailed spec</td><td data-qa="td">100 / 100, 18.6 min</td><td data-qa="td"><strong>100 / 100, 13.9 min</strong>, left a reusable check script</td></tr>
+          <tr><td class="num" data-qa="td-num">3</td><td data-qa="td">Build from scratch, vague brief, 127 hidden checks</td><td data-qa="td">23 / 100: 26 failed checks, 37 lint violations, still claimed done</td><td data-qa="td"><strong>100 / 100</strong>: 0 failed, 0 lint, self-report matched the grader</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="wrap footer" data-qa="footer">
+    <p class="footnote" data-qa="footnote">MIT licensed. This page passes the skill's own alignment guard and spacing lint at 1280 and 768 (<code>node scripts/site-check.mjs</code>).</p>
+  </footer>
+  <script src="site.js" defer></script>
+</body>
+</html>
