@@ -216,6 +216,14 @@
       "[data-qa=cmd-label]"
      ],
      "minEm": 6
+    },
+    {
+     "_section": "text",
+     "type": "noWrap",
+     "name": "terminal lines never wrap (a command stays on one line)",
+     "selectors": [
+      "[data-qa=term-body]"
+     ]
     }
    ]
   }

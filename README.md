@@ -36,7 +36,7 @@ SKILL.md                                    # the rules the agent follows
 templates/tokens.css                        # spacing, type pairs, control heights, overlays (screen)
 templates/tokens.print-a4.css               # the print preset: modular type scale, one inset
 templates/spacing-lint.mjs                  # lint: spacing scale, line-height, font-size
-templates/alignment-guard.mjs               # browser checks: edges, rows, baselines, gaps, overlays, stub lines
+templates/alignment-guard.mjs               # browser checks: edges, rows, baselines, gaps, overlays, stub lines, wrapped code
 templates/typography-check.mjs              # type scale, leading, line length, rhythm, alignment lines
 templates/palette-check.mjs                 # colours, hue families, WCAG contrast
 templates/align.config.example.json         # a complete example check config, one section per component
@@ -113,11 +113,12 @@ A printed sheet has no breakpoints and no hover, but it drifts the same way: a p
 
 - **One fixed viewport.** Set `"allowSingleViewport": true` and the sheet size (794x1123 for A4 at 96 dpi). Give each sheet `min-height` instead of `height`, and add a `size` check on it: content that no longer fits pushes the sheet taller, and the check fails.
 - **A print preset.** `templates/tokens.print-a4.css` has a modular type scale (12/16/20/24/32/40, adjacent steps 1.2x to 1.33x) and one `--inset`, the text-left shared by boxes, lists and table cells. Start the config from `templates/align.config.print.example.json`.
-- **Three more checks.**
+- **Four more checks.**
 
 | Check | What fails |
 |---|---|
 | `widow` in `alignment-guard.mjs` | A wrapped paragraph whose last line is narrower than `minEm` (the example uses 6) |
+| `noWrap` in `alignment-guard.mjs` | A terminal or code block that renders more lines than it has: a command wrapped inside a narrow box |
 | `typography-check.mjs` | Adjacent font sizes more than 1.34x or less than 1.2x apart, prose leading below 1.5x, a paragraph wider than 40em, block gaps that are not multiples of 8px, a heading nearer to what precedes it than to what follows, text starting off the alignment lines |
 | `palette-check.mjs` | Too many colours, a hue family outside the palette, text below 4.5:1 (3:1 for large text), saturated fills over 10% of the page |
 
@@ -126,7 +127,7 @@ The example in `docs/demo/print` is a quick start for an invented command-line t
 | Measured on the rendered page | Without the skill | With the skill |
 |---|---:|---:|
 | Spacing lint violations | 50 | 0 |
-| Guard checks failing (of 14) | 5 | 0 |
+| Guard checks failing (of 15) | 5 | 0 |
 | Stub last lines | 2 | 0 |
 | Font sizes in use | 9 | 5 |
 | Typography violations | 45 | 0 |

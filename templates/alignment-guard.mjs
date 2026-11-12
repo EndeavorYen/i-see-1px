@@ -11,7 +11,8 @@
    Pages with "actions" (an opened popover or dialog) are screenshotted at viewport size; others full page.
    Prints the browser version and the fonts the page actually rendered with (for the report).
    --summary groups the misalignments per check (count + the first few offenders) instead of printing every one.
-   Check types: row, column, size, gaps, type, style, noClip, center(ed), distance, anyOf, widow (stub last lines). */
+   Check types: row, column, size, gaps, type, style, noClip, noWrap (lines of a code/terminal block stay whole),
+   center(ed), distance, anyOf, widow (stub last lines). */
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -181,6 +182,24 @@ function widowLines([sels, minEm]) {
   return out;
 }
 
+/* Wrapped source lines: a block whose lines are meant to stay whole (a terminal, a code sample) renders more lines than it has. */
+function wrappedLines(sels) {
+  const out = { checked: 0, bad: [] };
+  const seen = new Set();
+  for (const sel of sels) for (const el of document.querySelectorAll(sel)) {
+    if (seen.has(el)) continue;
+    seen.add(el);
+    const s = getComputedStyle(el), r = el.getBoundingClientRect();
+    if (s.display === "none" || s.visibility === "hidden" || r.width < 1) continue;
+    const lh = parseFloat(s.lineHeight) || parseFloat(s.fontSize) * 1.2;
+    const rows = Math.round((el.clientHeight - parseFloat(s.paddingTop) - parseFloat(s.paddingBottom)) / lh);
+    const src = el.innerText.replace(/\n+$/, "").split("\n");
+    out.checked++;
+    if (rows > src.length) out.bad.push({ label: el.getAttribute("data-qa") || el.tagName.toLowerCase(), rows, lines: src.length, text: src.reduce((a, b) => (b.length > a.length ? b : a), "").slice(0, 48) });
+  }
+  return out;
+}
+
 /* ---------- checks ---------- */
 function groupBy(items, mode) {
   if (!mode) return [items];
@@ -325,6 +344,12 @@ async function runCheck(page, where, vp, chk) {
     const a = pick(await measure([chk.from.selector]), chk.from); const b = pick(await measure([chk.to.selector]), chk.to);
     if (!a || !b) { fail(where, chk.name, "missing element", !a ? chk.from.selector : chk.to.selector); return; }
     distanceCheck(where, chk, a, b);
+    return;
+  }
+  if (chk.type === "noWrap") {
+    const res = await page.evaluate(wrappedLines, chk.selectors);
+    if (!res.checked) { fail(where, chk.name, "missing: no element matched", chk.selectors.join(", ")); return; }
+    for (const b of res.bad) fail(where, chk.name, `${b.rows} rendered lines for ${b.lines} source lines: a line wraps`, `${b.label}: "${b.text}"`);
     return;
   }
   if (chk.type === "widow") {
