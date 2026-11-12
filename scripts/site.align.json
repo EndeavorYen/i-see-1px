@@ -2,8 +2,14 @@
  "_note": "Alignment guard config for the Pages site (docs/index.html). Run through scripts/site-check.mjs, which serves docs/ on this port so the demo iframes are same-origin.",
  "tolerance": 0.5,
  "viewports": [
-  { "width": 1280, "height": 900 },
-  { "width": 768, "height": 1024 }
+  {
+   "width": 1280,
+   "height": 900
+  },
+  {
+   "width": 768,
+   "height": 1024
+  }
  ],
  "pages": [
   {
@@ -11,26 +17,515 @@
    "url": "http://127.0.0.1:4173/index.html",
    "noOverflow": true,
    "checks": [
-    { "_section": "page", "type": "type", "name": "type rhythm: line heights on the 4px grid, few sizes", "selectors": ["body *"], "grid": 4, "maxDistinct": 6 },
-    { "_section": "page", "type": "column", "name": "hero, sections and footer share left and right edges", "selectors": ["[data-qa=hero]", "[data-qa=viewer]", "[data-qa=bench]", "[data-qa=footer]"], "match": ["left", "right"] },
-    { "_section": "page", "type": "column", "name": "headings and text share one text-left", "selectors": ["[data-qa=hero-title]", "[data-qa=tagline]", "[data-qa=section-title]", "[data-qa=lead]", "[data-qa=caption]", "[data-qa=footnote]"], "match": ["textLeft"] },
-    { "_section": "page", "type": "noClip", "name": "long text wraps", "selectors": ["[data-qa=tagline]", "[data-qa=lead]", "[data-qa=caption]", "[data-qa=key]", "[data-qa=footnote]"] },
-    { "_section": "buttons", "type": "size", "name": "buttons: one control height, hug their label", "selectors": ["[data-qa=btn]", "[data-qa=spot]"], "height": 40, "hug": true },
-    { "_section": "buttons", "type": "row", "name": "hero actions share top and height", "selectors": ["[data-qa=hero-actions] > *"], "match": ["top", "height"], "groupBy": "row", "minCount": 2 },
-    { "_section": "buttons", "type": "row", "name": "toolbar controls share top and height", "selectors": ["[data-qa=toolbar] [data-qa=btn]"], "match": ["top", "height"], "minCount": 3 },
-    { "_section": "buttons", "type": "gaps", "name": "spot buttons: equal gaps on the scale", "selectors": ["[data-qa=spot]"], "axis": "x", "scale": 4, "equals": 8 },
-    { "_section": "buttons", "type": "row", "name": "spot buttons in a row share top", "selectors": ["[data-qa=spot]"], "match": ["top", "height"], "groupBy": "row" },
-    { "_section": "buttons", "type": "column", "name": "toolbar, spots and frames start on the section edge", "selectors": ["[data-qa=toolbar]", "[data-qa=spots]", "[data-qa=frames]", "[data-qa=bench-table]"], "match": ["left"] },
-    { "_section": "frames", "type": "row", "name": "the two frames share top and height", "selectors": ["[data-qa=frame]"], "match": ["top", "height"], "minCount": 2 },
-    { "_section": "frames", "type": "size", "name": "the two frames are the same width", "selectors": ["[data-qa=frame]"], "equal": ["width"], "minCount": 2 },
-    { "_section": "frames", "type": "size", "name": "the two viewports are the same size", "selectors": ["[data-qa=viewport]"], "equal": ["width", "height"], "minCount": 2 },
-    { "_section": "frames", "type": "gaps", "name": "gutter between the frames is 16px", "selectors": ["[data-qa=frame]"], "axis": "x", "equals": 16 },
-    { "_section": "frames", "type": "row", "name": "strip titles share top and baseline", "selectors": ["[data-qa=strip-title]"], "match": ["top", "baseline"], "minCount": 2 },
-    { "_section": "frames", "type": "row", "name": "tag rows share top", "selectors": ["[data-qa=tags]"], "match": ["top", "height"], "minCount": 2 },
-    { "_section": "frames", "type": "column", "name": "frame left edge matches the frames grid", "selectors": ["[data-qa=frames]", "[data-qa=frame][data-side=without]"], "match": ["left"] },
-    { "_section": "frames", "type": "column", "name": "frame right edge matches the frames grid", "selectors": ["[data-qa=frames]", "[data-qa=frame][data-side=with]"], "match": ["right"] },
-    { "_section": "table", "type": "style", "name": "round numbers use tabular figures", "selectors": ["[data-qa=td-num]"], "property": "font-variant-numeric", "includes": "tabular-nums" },
-    { "_section": "table", "type": "column", "name": "round header and cells share text-right", "selectors": ["[data-qa=bench-table] .num"], "match": ["textRight"] }
+    {
+     "_section": "page",
+     "type": "type",
+     "name": "type rhythm: line heights on the 4px grid, few sizes",
+     "selectors": [
+      "body *"
+     ],
+     "grid": 4,
+     "maxDistinct": 6
+    },
+    {
+     "_section": "page",
+     "type": "column",
+     "name": "hero, sections and footer share left and right edges",
+     "selectors": [
+      "[data-qa=hero]",
+      "[data-qa=viewer]",
+      "[data-qa=bench]",
+      "[data-qa=footer]"
+     ],
+     "match": [
+      "left",
+      "right"
+     ]
+    },
+    {
+     "_section": "page",
+     "type": "column",
+     "name": "headings and text share one text-left",
+     "selectors": [
+      "[data-qa=hero-title]",
+      "[data-qa=tagline]",
+      "[data-qa=section-title]",
+      "[data-qa=lead]",
+      "[data-qa=caption]",
+      "[data-qa=footnote]"
+     ],
+     "match": [
+      "textLeft"
+     ]
+    },
+    {
+     "_section": "page",
+     "type": "noClip",
+     "name": "long text wraps",
+     "selectors": [
+      "[data-qa=tagline]",
+      "[data-qa=lead]",
+      "[data-qa=caption]",
+      "[data-qa=key]",
+      "[data-qa=footnote]"
+     ]
+    },
+    {
+     "_section": "buttons",
+     "type": "size",
+     "name": "buttons: one control height, hug their label",
+     "selectors": [
+      "[data-qa=btn]",
+      "[data-qa=spot]"
+     ],
+     "height": 40,
+     "hug": true
+    },
+    {
+     "_section": "buttons",
+     "type": "row",
+     "name": "hero actions share top and height",
+     "selectors": [
+      "[data-qa=hero-actions] > *"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "groupBy": "row",
+     "minCount": 2
+    },
+    {
+     "_section": "buttons",
+     "type": "row",
+     "name": "toolbar controls share top and height",
+     "selectors": [
+      "[data-qa=toolbar] [data-qa=btn]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "minCount": 3
+    },
+    {
+     "_section": "buttons",
+     "type": "gaps",
+     "name": "spot buttons: equal gaps on the scale",
+     "selectors": [
+      "[data-qa=spot]"
+     ],
+     "axis": "x",
+     "scale": 4,
+     "equals": 8
+    },
+    {
+     "_section": "buttons",
+     "type": "row",
+     "name": "spot buttons in a row share top",
+     "selectors": [
+      "[data-qa=spot]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "groupBy": "row"
+    },
+    {
+     "_section": "buttons",
+     "type": "column",
+     "name": "toolbar, spots and frames start on the section edge",
+     "selectors": [
+      "[data-qa=toolbar]",
+      "[data-qa=spots]",
+      "[data-qa=frames]",
+      "[data-qa=bench-table]"
+     ],
+     "match": [
+      "left"
+     ]
+    },
+    {
+     "_section": "frames",
+     "type": "row",
+     "name": "the two frames share top and height",
+     "selectors": [
+      "[data-qa=frame]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "size",
+     "name": "the two frames are the same width",
+     "selectors": [
+      "[data-qa=frame]"
+     ],
+     "equal": [
+      "width"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "size",
+     "name": "the two viewports are the same size",
+     "selectors": [
+      "[data-qa=viewport]"
+     ],
+     "equal": [
+      "width",
+      "height"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "gaps",
+     "name": "gutter between the frames is 16px",
+     "selectors": [
+      "[data-qa=frame]"
+     ],
+     "axis": "x",
+     "equals": 16
+    },
+    {
+     "_section": "frames",
+     "type": "row",
+     "name": "strip titles share top and baseline",
+     "selectors": [
+      "[data-qa=strip-title]"
+     ],
+     "match": [
+      "top",
+      "baseline"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "row",
+     "name": "tag rows share top",
+     "selectors": [
+      "[data-qa=tags]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "column",
+     "name": "frame left edge matches the frames grid",
+     "selectors": [
+      "[data-qa=frames]",
+      "[data-qa=frame][data-side=without]"
+     ],
+     "match": [
+      "left"
+     ]
+    },
+    {
+     "_section": "frames",
+     "type": "column",
+     "name": "frame right edge matches the frames grid",
+     "selectors": [
+      "[data-qa=frames]",
+      "[data-qa=frame][data-side=with]"
+     ],
+     "match": [
+      "right"
+     ]
+    },
+    {
+     "_section": "table",
+     "type": "style",
+     "name": "round numbers use tabular figures",
+     "selectors": [
+      "[data-qa=td-num]"
+     ],
+     "property": "font-variant-numeric",
+     "includes": "tabular-nums"
+    },
+    {
+     "_section": "table",
+     "type": "column",
+     "name": "round header and cells share text-right",
+     "selectors": [
+      "[data-qa=bench-table] .num"
+     ],
+     "match": [
+      "textRight"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "site-print",
+   "url": "http://127.0.0.1:4173/index.html",
+   "noOverflow": true,
+   "checks": [
+    {
+     "_section": "page",
+     "type": "type",
+     "name": "type rhythm: line heights on the 4px grid, few sizes",
+     "selectors": [
+      "body *"
+     ],
+     "grid": 4,
+     "maxDistinct": 6
+    },
+    {
+     "_section": "page",
+     "type": "column",
+     "name": "hero, sections and footer share left and right edges",
+     "selectors": [
+      "[data-qa=hero]",
+      "[data-qa=viewer]",
+      "[data-qa=bench]",
+      "[data-qa=footer]"
+     ],
+     "match": [
+      "left",
+      "right"
+     ]
+    },
+    {
+     "_section": "page",
+     "type": "column",
+     "name": "headings and text share one text-left",
+     "selectors": [
+      "[data-qa=hero-title]",
+      "[data-qa=tagline]",
+      "[data-qa=section-title]",
+      "[data-qa=lead]",
+      "[data-qa=caption]",
+      "[data-qa=footnote]"
+     ],
+     "match": [
+      "textLeft"
+     ]
+    },
+    {
+     "_section": "page",
+     "type": "noClip",
+     "name": "long text wraps",
+     "selectors": [
+      "[data-qa=tagline]",
+      "[data-qa=lead]",
+      "[data-qa=caption]",
+      "[data-qa=key]",
+      "[data-qa=footnote]"
+     ]
+    },
+    {
+     "_section": "buttons",
+     "type": "size",
+     "name": "buttons: one control height, hug their label",
+     "selectors": [
+      "[data-qa=btn]",
+      "[data-qa=spot]"
+     ],
+     "height": 40,
+     "hug": true
+    },
+    {
+     "_section": "buttons",
+     "type": "row",
+     "name": "hero actions share top and height",
+     "selectors": [
+      "[data-qa=hero-actions] > *"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "groupBy": "row",
+     "minCount": 2
+    },
+    {
+     "_section": "buttons",
+     "type": "row",
+     "name": "toolbar controls share top and height",
+     "selectors": [
+      "[data-qa=toolbar] [data-qa=btn]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "minCount": 3
+    },
+    {
+     "_section": "buttons",
+     "type": "gaps",
+     "name": "spot buttons: equal gaps on the scale",
+     "selectors": [
+      "[data-qa=spot]"
+     ],
+     "axis": "x",
+     "scale": 4,
+     "equals": 8
+    },
+    {
+     "_section": "buttons",
+     "type": "row",
+     "name": "spot buttons in a row share top",
+     "selectors": [
+      "[data-qa=spot]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "groupBy": "row"
+    },
+    {
+     "_section": "buttons",
+     "type": "column",
+     "name": "toolbar, spots and frames start on the section edge",
+     "selectors": [
+      "[data-qa=toolbar]",
+      "[data-qa=spots]",
+      "[data-qa=frames]",
+      "[data-qa=bench-table]"
+     ],
+     "match": [
+      "left"
+     ]
+    },
+    {
+     "_section": "frames",
+     "type": "row",
+     "name": "the two frames share top and height",
+     "selectors": [
+      "[data-qa=frame]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "size",
+     "name": "the two frames are the same width",
+     "selectors": [
+      "[data-qa=frame]"
+     ],
+     "equal": [
+      "width"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "size",
+     "name": "the two viewports are the same size",
+     "selectors": [
+      "[data-qa=viewport]"
+     ],
+     "equal": [
+      "width",
+      "height"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "gaps",
+     "name": "gutter between the frames is 16px",
+     "selectors": [
+      "[data-qa=frame]"
+     ],
+     "axis": "x",
+     "equals": 16
+    },
+    {
+     "_section": "frames",
+     "type": "row",
+     "name": "strip titles share top and baseline",
+     "selectors": [
+      "[data-qa=strip-title]"
+     ],
+     "match": [
+      "top",
+      "baseline"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "row",
+     "name": "tag rows share top",
+     "selectors": [
+      "[data-qa=tags]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "minCount": 2
+    },
+    {
+     "_section": "frames",
+     "type": "column",
+     "name": "frame left edge matches the frames grid",
+     "selectors": [
+      "[data-qa=frames]",
+      "[data-qa=frame][data-side=without]"
+     ],
+     "match": [
+      "left"
+     ]
+    },
+    {
+     "_section": "frames",
+     "type": "column",
+     "name": "frame right edge matches the frames grid",
+     "selectors": [
+      "[data-qa=frames]",
+      "[data-qa=frame][data-side=with]"
+     ],
+     "match": [
+      "right"
+     ]
+    },
+    {
+     "_section": "table",
+     "type": "style",
+     "name": "round numbers use tabular figures",
+     "selectors": [
+      "[data-qa=td-num]"
+     ],
+     "property": "font-variant-numeric",
+     "includes": "tabular-nums"
+    },
+    {
+     "_section": "table",
+     "type": "column",
+     "name": "round header and cells share text-right",
+     "selectors": [
+      "[data-qa=bench-table] .num"
+     ],
+     "match": [
+      "textRight"
+     ]
+    }
+   ],
+   "actions": [
+    {
+     "click": "[data-kind=print]",
+     "waitMs": 1200
+    }
    ]
   }
  ]

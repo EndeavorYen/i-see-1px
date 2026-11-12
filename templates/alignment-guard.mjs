@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Alignment guard: measure getBoundingClientRect in a real browser and fail on any misalignment.
-   Usage:  node alignment-guard.mjs align.config.json [--screenshots DIR] [--json-out FILE]
+   Usage:  node alignment-guard.mjs align.config.json [--screenshots DIR] [--json-out FILE] [--summary]
    Needs:  npm i --no-save playwright-core   (uses CHROME_PATH, else Playwright's bundled Chromium)
    Exit:   0 = pass, 1 = misalignments, 2 = config or runtime error.
    Config: see align.config.example.json. A url without "://" is a file path relative to the config.
@@ -9,7 +9,9 @@
    except on "size" checks, where "width"/"height" are the element's allowed size).
    Keys starting with "_" (e.g. "_section", "_note") are ignored, so the example config can carry notes.
    Pages with "actions" (an opened popover or dialog) are screenshotted at viewport size; others full page.
-   Prints the browser version and the fonts the page actually rendered with (for the report). */
+   Prints the browser version and the fonts the page actually rendered with (for the report).
+   --summary groups the misalignments per check (count + the first few offenders) instead of printing every one.
+   Check types: row, column, size, gaps, type, style, noClip, center(ed), distance, anyOf, widow (stub last lines). */
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -41,6 +43,7 @@ if (viewports.length < 2 && !(cfg.allowSingleViewport ?? cfg.allowSingleWidth)) 
 }
 const shotDir = flag("--screenshots") ?? (cfg.screenshots ? path.resolve(cfgDir, cfg.screenshots) : null);
 const jsonOut = flag("--json-out");
+const summary = args.includes("--summary");
 const toUrl = (u) => (u.includes("://") ? u : pathToFileURL(path.resolve(cfgDir, u)).href);
 const chromium = await loadChromium();
 
@@ -138,6 +141,44 @@ function centerPairs([[outerSel, innerSel], axis]) {
     res.push({ label: outer.getAttribute("data-qa") || outer.tagName.toLowerCase(), delta: ic - oc });
   }
   return res;
+}
+
+/* Widow / orphan lines: a wrapped block whose last line is only a few characters (e.g. "腦」。").
+   A line counts as wrapped when the previous line reached the right edge, so a deliberate <br> is not flagged. */
+function widowLines([sels, minEm]) {
+  const out = { checked: 0, bad: [] };
+  const seen = new Set();
+  for (const sel of sels) for (const el of document.querySelectorAll(sel)) {
+    if (seen.has(el)) continue;
+    seen.add(el);
+    const cs = getComputedStyle(el);
+    const box = el.getBoundingClientRect();
+    if (cs.display === "none" || cs.visibility === "hidden" || box.width < 1) continue;
+    const fs = parseFloat(cs.fontSize);
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) });
+    const rects = []; let lastNode = null, n;
+    while ((n = walker.nextNode())) {
+      const r = document.createRange(); r.selectNodeContents(n);
+      for (const q of r.getClientRects()) if (q.width >= 1 && q.height >= 1) rects.push({ top: q.top, bottom: q.bottom, left: q.left, right: q.right });
+      lastNode = n;
+    }
+    if (!rects.length) continue;
+    rects.sort((a, b) => (a.top + a.bottom) / 2 - (b.top + b.bottom) / 2);
+    const lines = [];
+    for (const r of rects) {
+      const c = (r.top + r.bottom) / 2, h = r.bottom - r.top, L = lines[lines.length - 1];
+      if (L && Math.abs(c - L.c) < Math.min(h, L.h) * 0.5) { L.left = Math.min(L.left, r.left); L.right = Math.max(L.right, r.right); }
+      else lines.push({ c, h, left: r.left, right: r.right });
+    }
+    if (lines.length < 2) continue;
+    out.checked++;
+    const last = lines[lines.length - 1], prev = lines[lines.length - 2];
+    const contentRight = box.right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth);
+    const wrapped = contentRight - prev.right <= fs * 1.5;
+    const w = last.right - last.left;
+    if (wrapped && w < minEm * fs) out.bad.push({ label: el.getAttribute("data-qa") || el.tagName.toLowerCase(), w, em: w / fs, tail: el.textContent.replace(/\s+/g, " ").trim().slice(-24) });
+  }
+  return out;
 }
 
 /* ---------- checks ---------- */
@@ -286,6 +327,12 @@ async function runCheck(page, where, vp, chk) {
     distanceCheck(where, chk, a, b);
     return;
   }
+  if (chk.type === "widow") {
+    const res = await page.evaluate(widowLines, [chk.selectors, chk.minEm ?? 4]);
+    if (!res.checked) { fail(where, chk.name, "missing: no wrapped (multi-line) text matched", chk.selectors.join(", ")); return; }
+    for (const b of res.bad) fail(where, chk.name, `last line is only ${f1(b.w)}px (${f1(b.em)}em, min ${chk.minEm ?? 4}em) after a full line: reflow or reword`, `${b.label}: "…${b.tail}"`);
+    return;
+  }
   const items = await measure(chk.selectors, chk.rowOf ?? null);
   if (items.length < (chk.minCount ?? 1)) { fail(where, chk.name, `missing: found ${items.length}, need ${chk.minCount ?? 1}`, chk.selectors.join(", ")); return; }
   if (chk.type === "gaps") gapCheck(where, chk, items);
@@ -363,7 +410,15 @@ await browser.close();
 const failedRuns = runs.filter((r) => r.failed).length;
 const vpList = viewports.map((v) => v.width).join(", ");
 if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify({ tolerance: TOL, viewports: viewports.map((v) => v.width), env, checksRun: runs.length, checksFailed: failedRuns, issues, failed: runs.filter((r) => r.failed) }, null, 2));
-for (const i of issues) console.log(`MISALIGN ${i.where} | ${i.check} | ${i.msg}${i.detail ? " | " + i.detail : ""}`);
+if (summary) {
+  const groups = new Map();
+  for (const i of issues) { const k = `${i.where} | ${i.check}`; (groups.get(k) ?? groups.set(k, []).get(k)).push(i); }
+  for (const [k, list] of groups) {
+    console.log(`MISALIGN ${k} | ${list.length} issue${list.length > 1 ? "s" : ""}`);
+    for (const i of list.slice(0, 3)) console.log(`    ${i.msg}${i.detail ? " | " + i.detail : ""}`);
+    if (list.length > 3) console.log(`    ... ${list.length - 3} more (run without --summary for all)`);
+  }
+} else for (const i of issues) console.log(`MISALIGN ${i.where} | ${i.check} | ${i.msg}${i.detail ? " | " + i.detail : ""}`);
 console.log(`env: ${env?.browser ?? "?"} | fonts: ${(env?.fonts ?? []).join(", ")}`);
 console.log(`checks: ${runs.length - failedRuns}/${runs.length} passed at viewports ${vpList}`);
 console.log(issues.length ? `alignment guard: ${issues.length} misalignments` : "alignment guard: pass");

@@ -22,10 +22,14 @@
   <main>
     <section class="wrap section" data-qa="viewer" aria-labelledby="viewer-title">
       <h2 class="section-title" data-qa="section-title" id="viewer-title">Without vs with, live</h2>
-      <p class="lead" data-qa="lead">Two real submissions from the same vague brief, same model, same prompt. The only difference is whether the skill was loaded. Both pages run live below; the overlay is measured from their DOM as you watch.</p>
+      <p class="lead" data-qa="lead" id="lead">Two real submissions from the same vague brief, same model, same prompt. The only difference is whether the skill was loaded. Both pages run live below; the overlay is measured from their DOM as you watch.</p>
 
       <div class="toolbar" data-qa="toolbar">
-        <div class="seg" role="group" aria-label="Viewport width" data-qa="seg">
+        <div class="seg" role="group" aria-label="Example" data-qa="seg">
+          <button class="btn" data-qa="btn" type="button" data-kind="web" aria-pressed="true">Web page</button>
+          <button class="btn" data-qa="btn" type="button" data-kind="print" aria-pressed="false">A4 print guide</button>
+        </div>
+        <div class="seg" role="group" aria-label="Viewport width" data-qa="seg" id="width-seg">
           <button class="btn" data-qa="btn" type="button" data-width="1280" aria-pressed="true">1280</button>
           <button class="btn" data-qa="btn" type="button" data-width="768" aria-pressed="false">768</button>
         </div>
@@ -34,11 +38,16 @@
       </div>
 
       <div class="spots" role="group" aria-label="Spots" data-qa="spots">
-        <button class="btn" data-qa="spot" type="button" data-spot="chip" aria-pressed="true">1. Chip baseline</button>
-        <button class="btn" data-qa="spot" type="button" data-spot="wrapped" aria-pressed="false">2. Wrapped row</button>
-        <button class="btn" data-qa="spot" type="button" data-spot="gaps" aria-pressed="false">3. Form gaps</button>
-        <button class="btn" data-qa="spot" type="button" data-spot="lineheight" aria-pressed="false">4. Line height</button>
-        <button class="btn" data-qa="spot" type="button" data-spot="popover" aria-pressed="false">5. Popover offset</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="web" data-spot="chip" aria-pressed="true">1. Chip baseline</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="web" data-spot="wrapped" aria-pressed="false">2. Wrapped row</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="web" data-spot="gaps" aria-pressed="false">3. Form gaps</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="web" data-spot="lineheight" aria-pressed="false">4. Line height</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="web" data-spot="popover" aria-pressed="false">5. Popover offset</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="print" data-spot="terms" aria-pressed="true" hidden>1. Paired terminals</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="print" data-spot="orphan" aria-pressed="false" hidden>2. Stub last line</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="print" data-spot="inset" aria-pressed="false" hidden>3. One text-left</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="print" data-spot="scale" aria-pressed="false" hidden>4. Type scale</button>
+        <button class="btn" data-qa="spot" type="button" data-kind="print" data-spot="palette" aria-pressed="false" hidden>5. Palette</button>
       </div>
 
       <p class="caption" data-qa="caption" id="caption" aria-live="polite"></p>
@@ -79,7 +88,7 @@
   </main>
 
   <footer class="wrap footer" data-qa="footer">
-    <p class="footnote" data-qa="footnote">MIT licensed. This page passes the skill's own alignment guard and spacing lint at 1280 and 768 (<code>node scripts/site-check.mjs</code>).</p>
+    <p class="footnote" data-qa="footnote">MIT licensed. This page passes the skill's own alignment guard and spacing lint at 1280 and 768 (<code>node scripts/site-check.mjs</code>), in both example states. The A4 example is checked by <code>node scripts/print-check.mjs</code>.</p>
   </footer>
   <script src="site.js" defer></script>
 </body>
