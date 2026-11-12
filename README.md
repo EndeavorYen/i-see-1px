@@ -105,6 +105,7 @@ npm i --no-save playwright-core
 node scripts/readme-check.mjs   # README pairs, widths, captions, headings, palette
 node scripts/site-check.mjs     # spacing lint + alignment guard on docs/index.html at 1280 and 768, in both example states
 node scripts/print-check.mjs    # every tool on the A4 example: "with" is clean, "without" fails each one (--sheets DIR adds the side-by-side pages)
+node scripts/typography-selftest.mjs   # single-line labels are not wrapped prose (issue #2); real wraps still are
 node scripts/make-compare.mjs   # regenerates docs/compare/06-10 from the live site (--only terms,orphan)
 ```
 
