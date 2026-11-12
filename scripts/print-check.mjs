@@ -44,7 +44,11 @@ function measure(side) {
   out.colours = pj.colors.length;
   out.outside = Object.keys(pj.families).filter((f) => !["blue", "gray", "red", "green"].includes(f)).length;
   out.lowContrast = pj.low.length;
-  // 4. typography
+  // 4. consistency (fonts, radii, borders, shadows, svg scale, tables, text, document)
+  const coJson = path.join(tmp, `${side}.consistency.json`);
+  node(["templates/consistency-check.mjs", page, "--json-out", coJson]);
+  out.consistency = JSON.parse(fs.readFileSync(coJson, "utf8")).violations.length;
+  // 5. typography
   const tyJson = path.join(tmp, `${side}.type.json`);
   node(["templates/typography-check.mjs", page, "--json-out", tyJson]);
   const tj = JSON.parse(fs.readFileSync(tyJson, "utf8"));
@@ -64,6 +68,7 @@ const rows = [
   ["Stub last lines", "stubs"],
   ["Font sizes in use", "sizes"],
   ["Typography violations", "typography"],
+  ["Consistency violations", "consistency"],
   ["Colours", "colours"],
   ["Hue families outside the palette", "outside"],
   ["Text runs below WCAG contrast", "lowContrast"]
@@ -82,8 +87,8 @@ if (sheetsAt > 0) {
   if (r.status !== 0) { console.error(r.stderr); process.exit(2); }
 }
 
-const mustBeClean = ["lint", "guardFailed", "stubs", "typography", "outside", "lowContrast"];
-const mustFail = ["lint", "guardFailed", "typography", "outside"]; // each tool needs a defect on the "without" page
+const mustBeClean = ["lint", "guardFailed", "stubs", "typography", "consistency", "outside", "lowContrast"];
+const mustFail = ["lint", "guardFailed", "typography", "consistency", "outside"]; // each tool needs a defect on the "without" page
 const fails = [];
 for (const k of mustBeClean) if (withSkill[k] !== 0) fails.push(`with: ${k} is ${withSkill[k]}, expected 0`);
 for (const k of mustFail) if (!(without[k] > 0)) fails.push(`without: ${k} is 0, so that check cannot be shown to bite`);

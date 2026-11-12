@@ -54,7 +54,14 @@ function inPage([lineOffsets, tol, proseLh, headLh, measure, rhythm, cfg]) {
     const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) });
     const n = w.nextNode(); if (!n) return null;
     const i = n.textContent.search(/\S/); const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + 1);
-    const q = r.getClientRects()[0]; return q ? q.left : null;
+    const q = r.getClientRects()[0]; if (!q) return null;
+    // the line's ink starts at an inline icon (svg) in front of the first character, if there is one
+    for (const ic of el.querySelectorAll("svg")) {
+      if (!(ic.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING)) break;
+      const b = ic.getBoundingClientRect();
+      if (b.width >= 1 && b.height >= 1) return Math.min(q.left, b.left);
+    }
+    return q.left;
   };
   const textLen = (el) => el.textContent.replace(/\s+/g, "").length;
   const ownText = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /* Before/after sheets: every sheet of two HTML files side by side, so a regression can be seen, not just measured.
    Usage:  node compare-sheets.mjs before.html after.html [--out DIR] [--sheet SELECTOR] [--width 794] [--height 1123]
-                                   [--labels "Before,After"]
+                                   [--labels "Before,After"] [--strict]
+           --strict  exit 1 when a block of text with the same words now takes more lines than before
    Needs:  playwright-core (CHROME_PATH if there is no bundled Chromium), like alignment-guard.mjs.
    Writes: DIR/sheet-01.png ... one image per sheet (left = before, right = after, with the share of changed pixels),
            DIR/before-after.pdf   all of them in one file.
@@ -46,10 +47,32 @@ try {
     const bufs = [];
     if (n === 0) bufs.push(await page.screenshot({ fullPage: true }));
     else for (let i = 0; i < n; i++) bufs.push(await loc.nth(i).screenshot());
+    const blocks = await page.evaluate(measureBlocks, sheetSel);
     await page.close();
-    return bufs;
+    return { bufs, blocks };
   }
-  const A = await shoot(files[0]), B = await shoot(files[1]);
+  // every block of running text with the number of lines it takes, keyed by its words (symbols and spaces ignored)
+  function measureBlocks(sheetSel) {
+    const out = [], seen = {};
+    const ignore = /[\s←-⯿①-⓿\u{1f300}-\u{1faff}]/gu;
+    const sheets = [...document.querySelectorAll(sheetSel)];
+    for (const el of document.body.querySelectorAll("*")) {
+      if (el.closest("svg,script,style,pre")) continue;
+      const s = getComputedStyle(el);
+      if (s.display === "none" || s.display.startsWith("inline")) continue;
+      if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
+      if ([...el.children].some((c) => { const d = getComputedStyle(c).display; return !d.startsWith("inline") && d !== "none"; })) continue; // only blocks whose children are all inline
+      const lh = parseFloat(s.lineHeight) || parseFloat(s.fontSize) * 1.2;
+      const inner = el.clientHeight - parseFloat(s.paddingTop) - parseFloat(s.paddingBottom);
+      const key = el.textContent.replace(ignore, "");
+      if (!key) continue;
+      seen[key] = (seen[key] ?? 0) + 1;
+      const sheet = sheets.findIndex((p) => p.contains(el)) + 1;
+      out.push({ key: key + "#" + seen[key], text: el.textContent.replace(/\s+/g, " ").trim().slice(0, 48), lines: Math.max(1, Math.round(inner / lh)), sheet });
+    }
+    return out;
+  }
+  const [{ bufs: A, blocks: blocksA }, { bufs: B, blocks: blocksB }] = [await shoot(files[0]), await shoot(files[1])];
   const n = Math.max(A.length, B.length);
   fs.mkdirSync(out, { recursive: true });
 
@@ -94,5 +117,17 @@ try {
   await pdfPage.waitForFunction(() => [...document.images].every((im) => im.complete));
   await pdfPage.pdf({ path: path.join(out, "before-after.pdf"), width: `${W * 2 + GAP * 3}px`, height: `${H + HEAD + GAP}px`, printBackground: true });
   console.log(`${path.relative(process.cwd(), path.join(out, "before-after.pdf"))}  ${composed.length} pages`);
+
+  // blocks of text that did not change but now take more lines (a sentence that fit on one line and no longer does)
+  const before = new Map(blocksA.map((b) => [b.key, b]));
+  const grown = [], shrunk = [];
+  for (const b of blocksB) {
+    const a = before.get(b.key); if (!a || a.lines === b.lines) continue;
+    (b.lines > a.lines ? grown : shrunk).push({ text: b.text, sheet: b.sheet, before: a.lines, after: b.lines });
+  }
+  fs.writeFileSync(path.join(out, "wraps.json"), JSON.stringify({ grown, shrunk }, null, 2));
+  console.log(`text blocks compared: ${blocksB.filter((b) => before.has(b.key)).length} unchanged in wording | now longer: ${grown.length} | now shorter: ${shrunk.length}`);
+  for (const g of grown) console.log(`  LONGER sheet ${g.sheet}: ${g.before} -> ${g.after} lines  "${g.text}"`);
+  if (grown.length && args.includes("--strict")) { console.log(`compare-sheets: ${grown.length} block${grown.length > 1 ? "s" : ""} grew (--strict)`); process.exitCode = 1; }
 } catch (e) { console.error("compare-sheets: error:", e.message.split("\n")[0]); process.exitCode = 2; }
 finally { await browser.close(); }
