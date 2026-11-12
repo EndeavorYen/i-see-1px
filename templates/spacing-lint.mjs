@@ -4,7 +4,7 @@
    tokens.css is never linted; it is read for token values (beside each target, or via --tokens).
    Scans .css files, <style> blocks and style="" attributes in .html files.
    Spacing (margin, padding, gap, inset, top/right/bottom/left offsets):
-     fails on a px/rem value not a multiple of 4px (rem = 16px), or a var(--x) that is neither a known
+     fails on a px/rem/mm/cm/in/pt/pc value not a multiple of 4px (rem = 16px; absolute units are converted to px), or a var(--x) that is neither a known
      token nor a custom property defined in the scanned files whose own value passes these rules.
      --strict: also fails on any raw non-zero length (use var(--space-*)).
    Type (unless --no-type):
@@ -34,7 +34,8 @@ if (!targets.length) { console.error("usage: node spacing-lint.mjs [--strict] [-
 
 const PROP = /(?:^|[;{\s"'])((?:margin|padding|gap|row-gap|column-gap|inset)(?:-(?:top|right|bottom|left|inline|block|inline-start|inline-end|block-start|block-end))?|top|right|bottom|left|line-height|font-size|font)\s*:\s*([^;}"]+)/g;
 const POSITIONAL = new Set(["top", "right", "bottom", "left"]);
-const LEN = /(-?\d*\.?\d+)(px|rem)\b/g;
+const LEN = /(-?\d*\.?\d+)(px|rem|mm|cm|in|pt|pc)\b/g;
+const TO_PX = { px: 1, rem: 16, mm: 96 / 25.4, cm: 96 / 2.54, in: 96, pt: 96 / 72, pc: 16 }; // absolute units are held to the same 4px scale, in px
 const VAR = /var\(\s*(--[\w-]+)/g;
 const TOKEN = /^--(space-|popover-offset|dialog-pad|gutter|page-pad|hairline|control-|content-col|icon-|sidebar-)/;
 
@@ -55,9 +56,9 @@ for (const file of defFiles) for (const m of fs.readFileSync(file, "utf8").match
 function spacingProblems(value, seen = new Set()) {
   const problems = [];
   for (const [, num, unit] of value.matchAll(LEN)) {
-    const px = Math.abs(parseFloat(num) * (unit === "rem" ? 16 : 1));
+    const px = Math.abs(parseFloat(num) * TO_PX[unit]);
     if (px === 0) continue;
-    if (px % 4 !== 0) problems.push(`${num}${unit} not on 4px scale`);
+    if (Math.abs(px / 4 - Math.round(px / 4)) > 0.005) problems.push(`${num}${unit}${unit === "px" || unit === "rem" ? "" : " = " + Math.round(px * 10) / 10 + "px"} not on 4px scale`);
     else if (strict && !seen.size) problems.push(`raw ${num}${unit}; use var(--space-*)`);
   }
   for (const [, name] of value.matchAll(VAR)) {
@@ -126,7 +127,7 @@ for (const file of files) {
     if (scan && !line.includes("px-ok")) {
       for (const m of line.matchAll(PROP)) {
         const [, prop, value] = m;
-        if (POSITIONAL.has(prop) && !/calc\(/.test(value) && !/px|rem/.test(value)) continue;
+        if (POSITIONAL.has(prop) && !/calc\(/.test(value) && !LEN.test(value)) continue;
         let problems;
         if (prop === "line-height") { if (!typeRules) continue; problems = lineHeightProblems(value); }
         else if (prop === "font-size") { if (!typeRules) continue; problems = fontSizeProblems(value); }

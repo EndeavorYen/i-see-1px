@@ -20,7 +20,7 @@ import zlib from "node:zlib";
 
 const readme = process.argv[2] ?? "README.md";
 const root = path.dirname(path.resolve(readme));
-const md = fs.readFileSync(readme, "utf8");
+const md = fs.readFileSync(readme, "utf8").replace(/\r\n/g, "\n"); // a Windows checkout (core.autocrlf) must not break the "$" in the caption pattern
 const fails = [];
 let checks = 0;
 const check = (cond, msg) => { checks++; if (!cond) fails.push(msg); };
@@ -109,9 +109,9 @@ const onDisk = fs.existsSync(path.join(root, "docs/compare")) ? fs.readdirSync(p
 for (const f of onDisk) check(compare.some((im) => im.src === `docs/compare/${f}`), `unused image: docs/compare/${f}`);
 
 // captions
-const sbs = md.split(/^## /m).find((s) => s.startsWith("Side-by-side"));
-if (sbs) {
-  const caps = sbs.split("\n").filter((l) => /^\*\*\d+\./.test(l));
+const sbsAll = md.split(/^## /m).filter((s) => s.startsWith("Side-by-side")); // the web pairs and the print pairs share one numbering
+if (sbsAll.length) {
+  const caps = sbsAll.flatMap((s) => s.split("\n").filter((l) => /^\*\*\d+\./.test(l)));
   check(caps.length === compare.length / 2, `${caps.length} captions for ${compare.length / 2} pairs`);
   caps.forEach((c, i) => {
     check(new RegExp(`^\\*\\*${i + 1}\\. [^*]+\\.\\*\\* Without the skill, [^.]+(\\.\\d[^.]*)*\\. With it, .+\\.$`).test(c), `caption ${i + 1} breaks the pattern: ${c.slice(0, 60)}…`);

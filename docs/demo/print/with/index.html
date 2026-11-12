@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meridian quick start (with skill)</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  :root{
+    /* palette: one brand blue + one slate neutral scale; green/red only ever mean pass/fail */
+    --ink:#1e293b; --muted:#475569; --brand:#1d4ed8; --brand-50:#eff6ff; --brand-100:#dbeafe;
+    --n-50:#f8fafc; --n-100:#f1f5f9; --n-200:#e2e8f0; --n-300:#cbd5e1; --n-500:#64748b; --n-700:#334155; --n-900:#0f172a;
+    --ok:#15803d; --bad:#b91c1c; --bad-bar:#dc2626; --bad-50:#fef2f2;
+    --term:var(--n-900); --card:var(--n-100); --line:var(--n-200);
+    --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif; --mono:Consolas,"Cascadia Mono",monospace;
+  }
+  @page{ size:A4; margin:0 }
+  *{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact }
+  html,body{ margin:0; background:#fff; color:var(--ink) }
+  body{ font-family:var(--sans); font-size:var(--fs-md); line-height:var(--lh-md);  }
+  .page{ width:210mm; min-height:297mm; padding:var(--page-top) var(--page-x) var(--page-bottom); position:relative; page-break-after:always }
+  .page:last-child{ page-break-after:auto }
+  .page > :nth-last-child(2){ margin-bottom:0 } /* last content block (the footer is the last child); the sheet's bottom padding is its margin */
+  .foot{ position:absolute; left:var(--page-x); right:var(--page-x); bottom:var(--space-8); font-size:var(--fs-xs); line-height:var(--lh-xs);
+         color:var(--muted); display:flex; justify-content:space-between; border-top:1px solid var(--line); padding-top:var(--space-2) }
+  h1{ font-size:var(--fs-2xl); line-height:var(--lh-2xl); margin:0 0 var(--space-4) }
+  h2{ font-size:var(--fs-xl); line-height:var(--lh-xl); margin:0 0 var(--space-4) }
+  h3{ font-size:var(--fs-lg); line-height:var(--lh-lg); margin:var(--space-6) 0 var(--space-2) }
+  p{ margin:0 0 var(--space-4) }
+  p,li,td,th,.card,.tip,.warn,.bad{ text-wrap:pretty } /* no stub last lines */
+  h1,h2,.head .sub,.cmdlabel{ text-wrap:balance }
+  .muted{ color:var(--muted) }
+  .t-xs{ font-size:var(--fs-xs); line-height:var(--lh-xs) }
+  .t-sm{ font-size:var(--fs-sm); line-height:var(--lh-sm) }
+  .t-md{ font-size:var(--fs-md); line-height:var(--lh-md) }
+  .head{ display:flex; align-items:center; gap:var(--space-5); margin-bottom:var(--space-6) }
+  .badge{ flex:none; width:var(--badge); height:var(--badge); border-radius:50%; background:var(--brand); color:#fff;
+          font-weight:700; font-size:var(--fs-xl); line-height:var(--lh-xl); display:flex; align-items:center; justify-content:center }
+  .head h2{ margin:0 }
+  .head .sub{ color:var(--muted); font-size:var(--fs-sm); line-height:var(--lh-sm) }
+  .card{ background:var(--card); border-left:var(--bar) solid transparent; border-radius:var(--radius-lg); padding:var(--space-4); margin:0 0 var(--space-4) }
+  .tip,.warn,.bad{ border-left:var(--bar) solid var(--brand); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); margin:0 0 var(--space-4) }
+  .tip{ background:var(--brand-50) } .warn{ background:var(--n-100); border-left-color:var(--n-700) } .bad{ background:var(--bad-50); border-left-color:var(--bad-bar) }
+  .tip b,.warn b,.bad b{ display:block; margin-bottom:var(--space-1) }
+  .compact{ padding:var(--space-2) var(--space-4) }
+  ol.steps{ margin:0 0 var(--space-4); padding-left:var(--inset) } ol.steps li{ margin:0 0 var(--space-2) }
+  .key{ display:inline-block; min-width:36px; text-align:center; padding:0 var(--space-2); border:2px solid #64748b; border-bottom-width:3px;
+        border-radius:var(--radius-md); background:#fff; font-weight:700; font-size:var(--fs-sm); line-height:var(--lh-sm) }
+  code,.mono{ font-family:var(--mono) }
+  code{ background:#e2e8f0; padding:0 var(--space-1); border-radius:var(--radius-sm); font-size:var(--fs-sm); line-height:var(--lh-sm) }
+
+  .cmdlabel{ font-size:var(--fs-sm); line-height:var(--lh-sm); color:var(--brand); font-weight:700; margin:var(--space-4) 0 var(--space-2) }
+  .cmd{ background:var(--n-50); border:2px solid var(--n-300); border-left:var(--bar) solid var(--brand); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4);
+        font-family:var(--mono); font-size:var(--fs-sm); line-height:var(--lh-sm); white-space:pre-wrap; overflow-wrap:anywhere; word-break:normal; color:var(--ink); margin:0 0 var(--space-4) }
+  .cmd.json{ font-size:var(--fs-xs); line-height:var(--lh-xs); white-space:pre; overflow-wrap:normal }
+  .term{ background:var(--term); border-left:var(--bar) solid #334155; border-radius:var(--radius-md); overflow:hidden; margin:0 0 var(--space-4); box-shadow:0 1px 3px rgba(0,0,0,.25) }
+  .term .bar{ background:#1e293b; color:#cbd5e1; font-size:var(--fs-xs); line-height:var(--lh-xs); padding:var(--space-2) var(--space-3); display:flex; gap:var(--space-2); align-items:center }
+  .term .bar i{ width:10px; height:10px; border-radius:50%; background:#475569; display:inline-block }
+  .term .bar span{ margin-left:var(--space-2) }
+  .term pre{ margin:0; padding:var(--space-3) var(--space-4); color:#e2e8f0; font-family:var(--mono); font-size:var(--fs-sm); line-height:var(--lh-sm); white-space:pre-wrap; overflow-wrap:anywhere }
+  .term .p{ color:#93c5fd } .term .c{ color:#f1f5f9 } .term .g{ color:#86efac } .term .r{ color:#fca5a5 } .term .d{ color:#94a3b8 }
+  .shot{ text-align:center; margin:0 0 var(--space-4) } .shot svg{ display:block; margin:0 auto; max-width:100%; height:auto }
+  .cap{ font-size:var(--fs-xs); line-height:var(--lh-xs); color:var(--muted); text-align:center; margin-top:var(--space-2) }
+  table{ border-collapse:collapse; width:100%; font-size:var(--fs-sm); line-height:var(--lh-sm); margin:0 0 var(--space-4) }
+  th,td{ border:0; box-shadow:inset 0 -1px 0 var(--line); padding:var(--space-2) var(--space-4) var(--space-2) var(--inset); text-align:left; vertical-align:top }
+  th{ background:var(--brand-50) }
+  .two .term{ min-height:var(--term-pair-h) }
+  .two{ display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); margin:0 0 var(--space-4) }
+  .ok,.no{ margin:0 0 var(--space-2); font-weight:700 } .ok{ color:var(--ok) } .no{ color:var(--bad) }
+  .dots{ margin:0; padding:0; list-style:none } .dots li{ position:relative; padding-left:var(--space-5) } .dots li + li{ margin-top:var(--space-1) }
+  .dots li::before{ content:"•"; position:absolute; left:0 }
+  .cover{ background:linear-gradient(180deg,#eff6ff 0%,#fff 60%) }
+  .tag{ display:inline-block; background:var(--brand); color:#fff; border-radius:var(--space-5); padding:var(--space-1) var(--space-4); font-size:var(--fs-sm); line-height:var(--lh-sm); margin-right:var(--space-2) }
+  svg text.s-xs{ font-size:var(--fs-xs); line-height:var(--lh-xs) } svg text.s-sm{ font-size:var(--fs-sm); line-height:var(--lh-sm) }
+  svg text.s-md{ font-size:var(--fs-md); line-height:var(--lh-md) } svg text.s-lg{ font-size:var(--fs-lg); line-height:var(--lh-lg) }
+  svg text.s-xl{ font-size:var(--fs-xl); line-height:var(--lh-xl) }
+  /* utilities last, so they win over component margins */
+  .mt-2{ margin-top:var(--space-2) } .mt-6{ margin-top:var(--space-6) } .mt-8{ margin-top:var(--space-8) } .mt-12{ margin-top:var(--space-12) }
+</style>
+</head>
+<body>
+
+<section data-qa="page" class="page">
+  <h2 data-qa="title">Before you start: prepare four things</h2>
+  <div data-qa="callout" class="card t-md"><p><b>Checklist</b></p><ul class="dots"><li><b>A computer with a terminal</b> (macOS, Linux or Windows)</li><li><b>Network access</b>: the office network, or the VPN</li><li><b>An access token</b>: it starts with mer_ followed by letters and digits</li><li><b>About 15 minutes</b></li></ul></div>
+  <div data-qa="callout" class="bad"><b>A token is a password</b>
+    Never paste it into a chat, an email or a screenshot. This guide never asks you to print it.</div>
+  <h3>Terms used in this guide (a quick reference)</h3>
+  <table data-qa="table">
+    <tr><th style="width:36mm">Term</th><th>Plain meaning</th></tr>
+    <tr><td><b>Terminal</b></td><td>A window where you type commands to the computer.</td></tr>
+    <tr><td><b>Command</b></td><td>One line of text you paste into the terminal, then run with <span class="key">Enter</span>.</td></tr>
+    <tr><td><b>mer</b></td><td>The command-line tool for Meridian Cloud.</td></tr>
+    <tr><td><b>Meridian Cloud</b></td><td>The hosting service that runs your projects.</td></tr>
+    <tr><td><b>Token</b></td><td>Your personal key to Meridian Cloud. Treat it like a password.</td></tr>
+    <tr><td><b>Project</b></td><td>A folder of files that you deploy together, as one unit.</td></tr>
+  </table>
+  <div data-qa="callout" class="tip mt-5"><b>How to paste</b>
+    In the terminal press <span class="key">Ctrl</span> + <span class="key">V</span>, or right-click.<br>
+    Pasting does <b style="display:inline">not</b> run the command: press <span class="key">Enter</span> when you are ready.</div>
+  <div data-qa="foot" class="foot"><span>Meridian quick start</span><span>Page 1</span></div>
+</section>
+
+<section data-qa="page" class="page">
+  <div data-qa="head" class="head"><div data-qa="badge" class="badge">1</div><div><h2 data-qa="title">Check your connection</h2><div class="sub">Like knocking on the door before you go in</div></div></div>
+  <div data-qa="cmd-label" class="cmdlabel">Copy the line below, paste it into the terminal, press Enter</div>
+  <div data-qa="cmd" class="cmd">mer status</div>
+  <h3>You will see one of two results:</h3>
+  <div data-qa="two" class="two">
+    <div>
+      <div class="ok">Connected: you are ready</div>
+      <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">mer status</span>
+<span class="g">Connected (42 ms)</span>
+<span class="p">$</span> _</pre></div>
+      <p class="t-sm">“Connected” means the door answered. Carry on to step 2, and keep this window open.</p>
+    </div>
+    <div>
+      <div class="no">Timed out or an error</div>
+      <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">mer status</span>
+<span class="r">Timed out after 10 s</span></pre></div>
+      <p class="t-sm">You are probably away from the office network. Join the Wi-Fi or the VPN, then run the command again.</p>
+    </div>
+  </div>
+  <div data-qa="callout" class="warn mt-6"><b>Why does it say “Connected” and not “Signed in”?</b>
+    This check does not send your token, so Meridian Cloud only confirms that it can be reached. Signing in comes next, in step 2.</div>
+  <div data-qa="foot" class="foot"><span>Meridian quick start</span><span>Page 2</span></div>
+</section>
+
+<section data-qa="page" class="page">
+  <div data-qa="head" class="head"><div data-qa="badge" class="badge">2</div><div><h2 data-qa="title">Sign in</h2><div class="sub">Do this once, and never again</div></div></div>
+  <h3>2-1  Find your token file</h3>
+  <p class="t-sm">If your team set up Meridian for you, the token is already saved in a small file in your home folder. We read it from there, so you never have to see it or copy it by hand.</p>
+  <div data-qa="cmd-label" class="cmdlabel">Paste, then press Enter</div>
+  <div data-qa="cmd" class="cmd">ls ~/.mer/credentials</div>
+  <div data-qa="two" class="two">
+    <div>
+      <div class="ok">A file name appears: go to 2-2</div>
+      <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">ls ~/.mer/credentials</span>
+/home/you/.mer/credentials</pre></div>
+    </div>
+    <div>
+      <div class="no">No such file: ask for a token</div>
+      <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">ls ~/.mer/credentials</span>
+<span class="r">ls: no such file or directory</span></pre></div>
+      <p class="muted t-sm">Ask your team lead for a Meridian token.</p>
+    </div>
+  </div>
+  <h3>2-2  Sign in with it</h3>
+  <div data-qa="cmd-label" class="cmdlabel">This is one long line; it wraps on screen, which is fine</div>
+  <div data-qa="cmd" class="cmd">mer login --token-file ~/.mer/credentials --profile default --no-browser --save-profile</div>
+  <p class="t-sm">You should see “Signed in”. The command reads the token by itself, so you never need to open the file, look at the token or copy it.</p>
+  <h3>2-3  Check who you are</h3>
+  <div data-qa="cmd" class="cmd">mer whoami</div>
+  <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">mer whoami</span>
+<span class="g">Signed in as ada@example.com (team: platform)</span></pre></div>
+  <div data-qa="foot" class="foot"><span>Meridian quick start</span><span>Page 3</span></div>
+</section>
+
+<section data-qa="page" class="page">
+  <h2 data-qa="title">Stuck? Start here</h2>
+  <table data-qa="table">
+    <tr><th style="width:56mm">What you see</th><th>What to do</th></tr>
+    <tr><td><b>401 Unauthorized</b><br>(in the terminal)</td><td>The token is missing or wrong. Repeat step 2 and open a <b>new terminal window</b>.</td></tr>
+    <tr><td><b>Timed out</b></td><td>You cannot reach the service. Join the office Wi-Fi or the VPN and repeat step 1, then check that you see Connected.</td></tr>
+    <tr><td><b>Project not found</b></td><td>The project name is wrong, or you do not have access yet. Ask your team lead to add you to the team.</td></tr>
+    <tr><td><b>400 invalid profile</b></td><td>The profile name in step 2-2 was typed differently. Paste the whole line again.</td></tr>
+    <tr><td><b>command not found: mer</b></td><td>The tool is not on your PATH. Ask your IT team, then open a new terminal window.</td></tr>
+    <tr><td><b>Not signed in</b></td><td>Run <code>mer whoami</code>. If it fails, repeat step 2-2.</td></tr>
+  </table>
+  <div data-qa="two" class="two">
+    <div data-qa="callout" class="tip"><b>Safety checklist</b>
+      <ul class="dots"><li>Your token is a password, so never take a screenshot of it or paste it into a chat.</li><li>Check that the address starts with https and shows a padlock before you type anything here.</li></ul></div>
+    <div data-qa="callout" class="warn"><b>Need more help?</b>
+      Open a ticket at help.meridian.example and attach the output of mer status. Never attach your token.</div>
+  </div>
+  <div data-qa="callout" class="card compact t-sm"><b>Versions used in this guide</b>  mer 2.4 · Meridian Cloud API v1 · updated 2026-11-12. Screens and numbers may differ slightly after an update.</div>
+  <div data-qa="foot" class="foot"><span>Meridian quick start</span><span>Page 4</span></div>
+</section>
+
+</body>
+</html>

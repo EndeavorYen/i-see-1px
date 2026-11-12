@@ -23,6 +23,7 @@ A vague request ("make it tidy, good on laptop and tablet") still means every ru
 - **Existing UI** → Step 0, then the rules, then the fix loop.
 - **Empty repo or new page** → the from-zero path. Write no component CSS before Z4.
 - **The project has no tokens, guard or lint** → do Z1–Z3 first.
+- **A printed document, PDF or fixed-size sheet** → the print path below, then the rules.
 
 ## From zero (and for any project missing the tools)
 
@@ -37,6 +38,15 @@ A vague request ("make it tidy, good on laptop and tablet") still means every ru
    - Keep every viewport you support (at least two, for example 1280 and 768). Restrict a check with `"viewports": [1280]`; the old `"widths"` key still works but is deprecated.
 4. **Z4 Prove the config bites.** Run the guard on the skeleton. Expect `missing` and other failures, not a pass. Then write markup and component CSS.
 5. **Z5 Wire it in.** Add an npm script such as `check:align` that runs the lint and then the guard.
+
+## Printed documents (A4, PDF, fixed-size sheets)
+
+Same rules, different set-up. Check the HTML source in a browser, then print it to PDF.
+
+1. Copy `templates/tokens.print-a4.css` as `tokens.css` and `templates/align.config.print.example.json` as `align.config.json`. The config has one viewport (`allowSingleViewport`) and the sheet size. Give every sheet `min-height`, never `height`, so content that overflows fails the `size` check.
+2. Rename the `data-qa` hooks. Boxes, lists and table cells start their text on one `--inset`.
+3. Add the document checks: the guard's `widow` (no wrapped paragraph ends in a stub line), `node typography-check.mjs <page.html>` (scale, leading, line length, rhythm, alignment lines) and `node palette-check.mjs <page.html>` (colours, hue families, contrast). The leading and line-length rules apply to CJK text; pass `--prose-lh`, `--measure` and `--lines` for your own numbers.
+4. Once the guards pass, run `node compare-sheets.mjs before.html after.html --out sheets` and look at every pair, starting with the sheets that changed most. The guards cannot see inside SVG illustrations or content drawn by CSS (a list bullet written as a CSS escape rendered as ",2" and passed every check), and a fix can break something nobody asked about (a command wrapped inside a terminal after its padding grew). A new defect found this way becomes a new check, not just a fix.
 
 ## Step 0 — inventory and "before"
 

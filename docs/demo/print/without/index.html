@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meridian quick start (without skill)</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#5b6472; --brand:#1d4ed8; --brand-soft:#e8efff;
+    --accent:#f59e0b; --accent-soft:#fff4dc; --ok:#15803d; --ok-soft:#e6f6ea;
+    --bad:#b91c1c; --bad-soft:#fdeaea; --term:#0f172a; --card:#f4f6fa; --line:#d7dce5;
+  }
+  @page{ size:A4; margin:0 }
+  *{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact }
+  html,body{ margin:0; background:#fff; color:var(--ink) }
+  body{ font-family:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif; font-size:14.5pt; line-height:1.55 }
+  .page{ width:210mm; height:297mm; padding:15mm 16mm 16mm; position:relative; page-break-after:always; overflow:hidden }
+  .page:last-child{ page-break-after:auto }
+  .foot{ position:absolute; left:16mm; right:16mm; bottom:8mm; font-size:9.5pt; color:var(--muted);
+         display:flex; justify-content:space-between; border-top:1px solid var(--line); padding-top:2mm }
+  h1{ font-size:30pt; line-height:1.25; margin:0 0 4mm }
+  h2{ font-size:21pt; margin:0 0 3mm; line-height:1.3 }
+  h3{ font-size:15pt; margin:5mm 0 2mm }
+  p{ margin:0 0 3mm }
+  .muted{ color:var(--muted) }
+  .head{ display:flex; align-items:center; gap:5mm; margin-bottom:5mm }
+  .badge{ flex:none; width:17mm; height:17mm; border-radius:50%; background:var(--brand); color:#fff;
+          font-weight:700; font-size:24pt; display:flex; align-items:center; justify-content:center }
+  .head h2{ margin:0 }
+  .head .sub{ color:var(--muted); font-size:12pt }
+  .card{ background:var(--card); border-radius:3mm; padding:4mm 5mm; margin:0 0 4mm }
+  .tip{ background:var(--ok-soft); border-left:2mm solid var(--ok); border-radius:2mm; padding:3mm 4.5mm; margin:3mm 0 }
+  .warn{ background:var(--accent-soft); border-left:2mm solid var(--accent); border-radius:2mm; padding:3mm 4.5mm; margin:3mm 0 }
+  .bad{ background:var(--bad-soft); border-left:2mm solid var(--bad); border-radius:2mm; padding:3mm 4.5mm; margin:3mm 0 }
+  .tip b,.warn b,.bad b{ display:block; margin-bottom:1mm }
+  ol.steps{ margin:0 0 3mm; padding-left:9mm } ol.steps li{ margin:0 0 2mm }
+  .key{ display:inline-block; min-width:9mm; text-align:center; padding:0 2.5mm; border:1.5px solid #8b94a3; border-bottom-width:3px;
+        border-radius:2mm; background:#fff; font-weight:700; font-size:12.5pt }
+  code,.mono{ font-family:Consolas,"Cascadia Mono",monospace }
+  code{ background:#eef1f6; padding:0 1.5mm; border-radius:1.2mm; font-size:12.5pt }
+
+  .cmdlabel{ font-size:11.5pt; color:var(--brand); font-weight:700; margin:2mm 0 1mm }
+  .cmd{ background:#fffbea; border:1.5px solid var(--accent); border-left-width:2.5mm; border-radius:2mm; padding:3mm 4mm;
+        font-family:Consolas,"Cascadia Mono",monospace; font-size:12pt; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; word-break:normal; color:#1f2937 }
+  .term{ background:var(--term); border-radius:2.5mm; overflow:hidden; margin:2mm 0 3mm; box-shadow:0 1px 3px rgba(0,0,0,.25) }
+  .term .bar{ background:#1e293b; color:#cbd5e1; font-size:9.5pt; padding:1.6mm 3mm; display:flex; gap:1.6mm; align-items:center }
+  .term .bar i{ width:2.6mm; height:2.6mm; border-radius:50%; background:#475569; display:inline-block }
+  .term .bar span{ margin-left:2mm }
+  .term pre{ margin:0; padding:3.5mm 4mm; color:#e2e8f0; font-family:Consolas,"Cascadia Mono",monospace; font-size:11.5pt; line-height:1.5; white-space:pre-wrap; word-break:break-all }
+  .term .p{ color:#7dd3fc } .term .c{ color:#fde68a } .term .g{ color:#86efac } .term .r{ color:#fca5a5 } .term .d{ color:#94a3b8 }
+  .shot{ text-align:center; margin:2mm 0 3mm } .shot svg{ max-width:100%; height:auto }
+  .cap{ font-size:10.5pt; color:var(--muted); text-align:center; margin-top:1mm }
+  table{ border-collapse:collapse; width:100%; font-size:12.5pt }
+  th,td{ border:1px solid var(--line); padding:2.2mm 3mm; text-align:left; vertical-align:top }
+  th{ background:var(--brand-soft) }
+  .two{ display:grid; grid-template-columns:1fr 1fr; gap:4mm }
+  .ok{ color:var(--ok); font-weight:700 } .no{ color:var(--bad); font-weight:700 }
+  .cover{ background:linear-gradient(180deg,#eef3ff 0%,#fff 60%) }
+  .tag{ display:inline-block; background:var(--brand); color:#fff; border-radius:5mm; padding:.6mm 4mm; font-size:11.5pt; margin-right:2mm }
+</style>
+</head>
+<body>
+
+<section data-qa="page" class="page">
+  <h2 data-qa="title">Before you start: prepare four things</h2>
+  <div data-qa="callout" class="card" style="font-size:15pt"><p><b>Checklist</b></p><p>· <b>A computer with a terminal</b> (macOS, Linux or Windows)</p><p>· <b>Network access</b>: the office network, or the VPN</p><p>· <b>An access token</b>: it starts with mer_ followed by letters and digits</p><p>· <b>About 15 minutes</b></p></div>
+  <div data-qa="callout" class="bad"><b>A token is a password</b>
+    Never paste it into a chat, an email or a screenshot. This guide never asks you to print it.</div>
+  <h3>Terms used in this guide (a quick reference)</h3>
+  <table data-qa="table">
+    <tr><th style="width:36mm">Term</th><th>Plain meaning</th></tr>
+    <tr><td><b>Terminal</b></td><td>A window where you type commands to the computer.</td></tr>
+    <tr><td><b>Command</b></td><td>One line of text you paste into the terminal, then run with <span class="key">Enter</span>.</td></tr>
+    <tr><td><b>mer</b></td><td>The command-line tool for Meridian Cloud.</td></tr>
+    <tr><td><b>Meridian Cloud</b></td><td>The hosting service that runs your projects.</td></tr>
+    <tr><td><b>Token</b></td><td>Your personal key to Meridian Cloud. Treat it like a password.</td></tr>
+    <tr><td><b>Project</b></td><td>A folder of files that you deploy together, as one unit.</td></tr>
+  </table>
+  <div data-qa="callout" class="tip mt-5"><b>How to paste</b>
+    In the terminal press <span class="key">Ctrl</span> + <span class="key">V</span>, or right-click.<br>
+    Pasting does <b style="display:inline">not</b> run the command: press <span class="key">Enter</span> when you are ready.</div>
+  <div data-qa="foot" class="foot"><span>Meridian quick start</span><span>Page 1</span></div>
+</section>
+
+<section data-qa="page" class="page">
+  <div data-qa="head" class="head"><div data-qa="badge" class="badge">1</div><div><h2 data-qa="title">Check your connection</h2><div class="sub">Like knocking on the door before you go in</div></div></div>
+  <div data-qa="cmd-label" class="cmdlabel">Copy the line below, paste it into the terminal, press Enter</div>
+  <div data-qa="cmd" class="cmd">mer status</div>
+  <h3>You will see one of two results:</h3>
+  <div data-qa="two" class="two">
+    <div>
+      <div class="ok">Connected: you are ready</div>
+      <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">mer status</span>
+<span class="g">Connected (42 ms)</span>
+<span class="p">$</span> _</pre></div>
+      <p style="font-size:12.5pt">“Connected” means the door answered. Carry on to step 2, and keep this window open.</p>
+    </div>
+    <div>
+      <div class="no">Timed out, or an error message appears instead</div>
+      <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">mer status</span>
+<span class="r">Timed out after 10 s</span></pre></div>
+      <p style="font-size:12.5pt">You are probably away from the office network. Join the Wi-Fi or the VPN, then run the command again.</p>
+    </div>
+  </div>
+  <div data-qa="callout" class="warn mt-6"><b>Why does it say “Connected” and not “Signed in”?</b>
+    This check does not send your token, so Meridian Cloud only confirms that it can be reached. Signing in comes next, in step 2.</div>
+  <div data-qa="foot" class="foot"><span>Meridian quick start</span><span>Page 2</span></div>
+</section>
+
+<section data-qa="page" class="page">
+  <div data-qa="head" class="head"><div data-qa="badge" class="badge">2</div><div><h2 data-qa="title">Sign in</h2><div class="sub">Do this once, and never again</div></div></div>
+  <h3>2-1  Find your token file</h3>
+  <p style="font-size:13pt">If your team set up Meridian for you, the token is already saved in a small file in your home folder. We read it from there, so you never have to see it or copy it by hand.</p>
+  <div data-qa="cmd-label" class="cmdlabel">Paste, then press Enter</div>
+  <div data-qa="cmd" class="cmd">ls ~/.mer/credentials</div>
+  <div data-qa="two" class="two">
+    <div>
+      <div class="ok">A file name appears: go to 2-2</div>
+      <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">ls ~/.mer/credentials</span>
+/home/you/.mer/credentials</pre></div>
+    </div>
+    <div>
+      <div class="no">No such file: ask for a token</div>
+      <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">ls ~/.mer/credentials</span>
+<span class="r">ls: no such file or directory</span></pre></div>
+      <p class="muted" style="font-size:11.5pt">Ask your team lead for a Meridian token.</p>
+    </div>
+  </div>
+  <h3>2-2  Sign in with it</h3>
+  <div data-qa="cmd-label" class="cmdlabel">This is one long line; it wraps on screen, which is fine</div>
+  <div data-qa="cmd" class="cmd">mer login --token-file ~/.mer/credentials --profile default --no-browser --save-profile</div>
+  <p style="font-size:12.5pt">You should see “Signed in”. The command reads the token by itself, so you never need to look at it.</p>
+  <h3>2-3  Check who you are</h3>
+  <div data-qa="cmd" class="cmd">mer whoami</div>
+  <div data-qa="term" class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre data-qa="term-body"><span class="p">$</span> <span class="c">mer whoami</span>
+<span class="g">Signed in as ada@example.com (team: platform)</span></pre></div>
+  <div data-qa="foot" class="foot"><span>Meridian quick start</span><span>Page 3</span></div>
+</section>
+
+<section data-qa="page" class="page">
+  <h2 data-qa="title">Stuck? Start here</h2>
+  <table data-qa="table">
+    <tr><th style="width:56mm">What you see</th><th>What to do</th></tr>
+    <tr><td><b>401 Unauthorized</b><br>(in the terminal)</td><td>The token is missing or wrong. Repeat step 2 and open a <b>new terminal window</b>.</td></tr>
+    <tr><td><b>Timed out</b></td><td>You cannot reach the service. Join the office Wi-Fi or the VPN and repeat step 1, then check that you see Connected.</td></tr>
+    <tr><td><b>Project not found</b></td><td>The project name is wrong, or you do not have access yet. Ask your team lead to add you to the team.</td></tr>
+    <tr><td><b>400 invalid profile</b></td><td>The profile name in step 2-2 was typed differently. Paste the whole line again.</td></tr>
+    <tr><td><b>command not found: mer</b></td><td>The tool is not on your PATH. Ask your IT team, then open a new terminal window.</td></tr>
+    <tr><td><b>Not signed in</b></td><td>Run <code>mer whoami</code>. If it fails, repeat step 2-2.</td></tr>
+  </table>
+  <div data-qa="two" class="two">
+    <div data-qa="callout" class="tip"><b>Safety checklist</b>
+      · Your token is a password, so never take a screenshot of it or paste it into a chat.<br>· Check that the address starts with https and shows a padlock before you type anything here.</div>
+    <div data-qa="callout" class="warn"><b>Need more help?</b>
+      Open a ticket at help.meridian.example and attach the output of mer status. Never attach your token.</div>
+  </div>
+  <div data-qa="callout" class="card" style="font-size:12.5pt"><b>Versions used in this guide</b>  mer 2.4 · Meridian Cloud API v1 · updated 2026-11-12. Screens and numbers may differ slightly after an update.</div>
+  <div data-qa="foot" class="foot"><span>Meridian quick start</span><span>Page 4</span></div>
+</section>
+
+</body>
+</html>

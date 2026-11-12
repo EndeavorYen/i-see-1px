@@ -1,0 +1,231 @@
+{
+ "_note": "Starting config for a printed document: one fixed viewport (allowSingleViewport), sheet size, type scale, column edges, one text-left, paired boxes, no stub last lines. Rename the data-qa hooks to yours; delete only what the document does not have.",
+ "tolerance": 0.5,
+ "allowSingleViewport": true,
+ "viewports": [
+  {
+   "width": 794,
+   "height": 1123
+  }
+ ],
+ "screenshots": "shots",
+ "pages": [
+  {
+   "name": "document",
+   "url": "index.html",
+   "noOverflow": true,
+   "checks": [
+    {
+     "_section": "page",
+     "type": "type",
+     "name": "type scale: only 12/16/20/24/32/40, line heights on the 4px grid",
+     "selectors": [
+      "body *"
+     ],
+     "grid": 4,
+     "maxDistinct": 6,
+     "fontSizes": [
+      12,
+      16,
+      20,
+      24,
+      32,
+      40
+     ],
+     "lineHeights": [
+      16,
+      24,
+      32,
+      40,
+      48
+     ]
+    },
+    {
+     "_section": "page",
+     "type": "size",
+     "name": "every sheet is exactly A4 (content must not push a sheet taller)",
+     "selectors": [
+      "[data-qa=page]"
+     ],
+     "width": 793.7,
+     "height": 1122.5
+    },
+    {
+     "_section": "column",
+     "type": "column",
+     "name": "blocks share the left edge of the content column",
+     "selectors": [
+      "[data-qa=page] > [data-qa=head]",
+      "[data-qa=page] > [data-qa=title]",
+      "[data-qa=page] > [data-qa=page-title]",
+      "[data-qa=page] > [data-qa=cmd-label]",
+      "[data-qa=page] > [data-qa=cmd]",
+      "[data-qa=page] > [data-qa=callout]",
+      "[data-qa=page] > [data-qa=table]",
+      "[data-qa=page] > [data-qa=term]",
+      "[data-qa=page] > [data-qa=shot]",
+      "[data-qa=page] > [data-qa=steps]",
+      "[data-qa=two] > :first-child",
+      "[data-qa=foot]"
+     ],
+     "match": [
+      "left"
+     ]
+    },
+    {
+     "_section": "column",
+     "type": "column",
+     "name": "blocks share the right edge of the content column",
+     "selectors": [
+      "[data-qa=page] > [data-qa=head]",
+      "[data-qa=page] > [data-qa=title]",
+      "[data-qa=page] > [data-qa=page-title]",
+      "[data-qa=page] > [data-qa=cmd-label]",
+      "[data-qa=page] > [data-qa=cmd]",
+      "[data-qa=page] > [data-qa=callout]",
+      "[data-qa=page] > [data-qa=table]",
+      "[data-qa=page] > [data-qa=term]",
+      "[data-qa=page] > [data-qa=shot]",
+      "[data-qa=page] > [data-qa=steps]",
+      "[data-qa=two] > :last-child",
+      "[data-qa=foot]"
+     ],
+     "match": [
+      "right"
+     ]
+    },
+    {
+     "_section": "column",
+     "type": "column",
+     "name": "text inside boxes, lists and table cells starts at one text-left (the 24px inset)",
+     "selectors": [
+      "[data-qa=page] > [data-qa=cmd]",
+      "[data-qa=page] > [data-qa=callout]",
+      "[data-qa=page] > [data-qa=term] > [data-qa=term-body]",
+      "[data-qa=page] > [data-qa=steps] > li",
+      "[data-qa=page] > [data-qa=table] th:first-child",
+      "[data-qa=page] > [data-qa=table] td:first-child"
+     ],
+     "match": [
+      "textLeft"
+     ]
+    },
+    {
+     "_section": "two-column",
+     "type": "row",
+     "name": "the two columns share top and width",
+     "selectors": [
+      "[data-qa=two] > *"
+     ],
+     "match": [
+      "top",
+      "width"
+     ],
+     "groupBy": "row",
+     "minCount": 2
+    },
+    {
+     "_section": "two-column",
+     "type": "gaps",
+     "name": "gap between the two columns is on the 4px scale",
+     "selectors": [
+      "[data-qa=two] > *"
+     ],
+     "axis": "x",
+     "scale": 4,
+     "minCount": 2
+    },
+    {
+     "_section": "two-column",
+     "type": "row",
+     "name": "terminals in the two columns share top and height",
+     "selectors": [
+      "[data-qa=two] [data-qa=term]"
+     ],
+     "match": [
+      "top",
+      "height"
+     ],
+     "groupBy": "row",
+     "minCount": 2
+    },
+    {
+     "_section": "badge",
+     "type": "size",
+     "name": "step badges are squares on the 4px grid",
+     "selectors": [
+      "[data-qa=badge]"
+     ],
+     "square": true,
+     "width": {
+      "step": 4
+     },
+     "height": {
+      "step": 4
+     },
+     "equal": [
+      "width",
+      "height"
+     ]
+    },
+    {
+     "_section": "badge",
+     "type": "center",
+     "name": "badge is vertically centred in its heading row",
+     "pairs": [
+      "[data-qa=head]",
+      "[data-qa=badge]"
+     ],
+     "axis": "y"
+    },
+    {
+     "_section": "footer",
+     "type": "size",
+     "name": "footers are all the same size",
+     "selectors": [
+      "[data-qa=foot]"
+     ],
+     "equal": [
+      "width",
+      "height"
+     ]
+    },
+    {
+     "_section": "text",
+     "type": "noClip",
+     "name": "long text and code wrap or fit, never clipped",
+     "selectors": [
+      "[data-qa=cmd]",
+      "[data-qa=term]",
+      "[data-qa=callout]",
+      "[data-qa=table]",
+      "[data-qa=steps]"
+     ]
+    },
+    {
+     "_section": "text",
+     "type": "widow",
+     "name": "no wrapped paragraph ends in a stub line (min 6em)",
+     "selectors": [
+      "p",
+      "li",
+      "td",
+      "th",
+      "[data-qa=callout]",
+      "[data-qa=caption]",
+      "[data-qa=cmd-label]"
+     ],
+     "minEm": 6
+    },
+    {
+     "_section": "text",
+     "type": "noWrap",
+     "name": "terminal lines never wrap (a command stays on one line)",
+     "selectors": [
+      "[data-qa=term-body]"
+     ]
+    }
+   ]
+  }
+ ]
+}
