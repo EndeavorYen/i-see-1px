@@ -41,6 +41,8 @@ templates/typography-check.mjs              # type scale, leading, line length, 
 templates/palette-check.mjs                 # colours, hue families, WCAG contrast
 templates/consistency-check.mjs             # icon fonts, fallback fonts, radii, borders, strokes, shadows, svg scale, tables, text
 templates/compare-sheets.mjs                # every page of a before and an after file side by side, with the share of changed pixels
+templates/actions.mjs                       # how pages reach a state: click, waitFor, hold, wait, eval (used by the guard and snapshot)
+templates/snapshot.mjs                      # freeze every page x viewport of a guard config into an HTML file for the file tools
 templates/align.config.example.json         # a complete example check config, one section per component
 templates/align.config.print.example.json   # the same for a printed document
 scripts/readme-check.mjs                    # this README's own layout check (we dogfood it)
@@ -147,6 +149,29 @@ node scripts/print-check.mjs --sheets sheets                            # the sa
 ```
 
 Numbers that depend on text width, such as stub last lines, move with the fonts. These were measured in `chromium 157.0.8103.78` on Windows, with Segoe UI and Consolas. The pairs under [Side-by-side: an A4 print guide](#side-by-side-an-a4-print-guide) show the same pages with the measurements drawn on them.
+
+## Apps and games
+
+An app or a game hides most of its screens behind clicks: a menu, a level, a grown-ups' button held for two seconds, a state that only a debug hook can set. It is used with a finger, on a phone and on a tablet held both ways. The same tools measure it; the config reaches each state first.
+
+- **Actions reach the state.** `click`, `waitFor`, `hold` (long press), `wait` and `eval` (run JavaScript in the page, e.g. `window.__app.set({...})`) live in `templates/actions.mjs`, used by the guard and by `snapshot.mjs`. `"freshContext": true` gives every page and viewport empty storage, so a save from one page does not change the next; `"touch": true` emulates a touch screen; `"hooks": ["data-testid"]` names elements by the hooks the app already has.
+- **Two app checks.** `size` with a 44px minimum on every enabled button (touch targets), and `inViewport`: the whole play area or form, and its main button, are on screen without scrolling, and no scrolling or clipping container cuts them off (the report names the container).
+- **Snapshots for the file tools.** `node templates/snapshot.mjs align.config.json --out snaps` freezes every page at every viewport into an HTML file (DOM as rendered, same-origin CSS inlined, scripts removed). `palette-check`, `typography-check`, `consistency-check` and `compare-sheets` then read those files; the first three also take a URL.
+- **Artwork is not interface.** `--artwork SEL` keeps illustrations, sprites and drawn clocks out of the palette, radius, stroke and scale rules (their text is still checked for contrast), and the guard's `type` check leaves out text inside an svg. Text on an svg is measured against what lies beneath it, not against a hand drawn across it.
+- **Many sizes, one grid.** `line-height: round(nearest, 1.35em, 4px)` puts every font size on the 4px grid with one rule, and the lint accepts it.
+
+Measured on a children's game (11 screens, phone 390x844, tablet 834x1194 and 1194x834, before and after one pass of fixes):
+
+| Measured | Before | After |
+|---|---:|---:|
+| Guard checks failing | 66 of 372 | 0 of 372 |
+| Guard misalignments | 597 | 0 |
+| Spacing lint violations | 191 | 0 |
+| Text below WCAG contrast | 6 | 0 |
+| Typography violations | 102 | 0 |
+| Consistency violations | 42 | 6 * |
+
+\* fallback fonts only: the test machine had no web fonts, so two weights of the system CJK font counted as two fonts; env-dependent. `node scripts/apps-selftest.mjs` checks every addition on a small demo page.
 
 ## Benchmark
 

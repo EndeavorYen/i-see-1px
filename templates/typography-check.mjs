@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Typography check: scale, proportion, indentation, measure and vertical rhythm, measured on the rendered page.
-   Usage:  node typography-check.mjs page.html [--ratio 1.2,1.34] [--prose-lh 1.5] [--head-lh 1.5] [--measure 40]
+   Usage:  node typography-check.mjs page.html|URL [--ratio 1.2,1.34] [--prose-lh 1.5] [--head-lh 1.5] [--measure 40]
                                           [--rhythm 8] [--lines 0,24] [--config FILE] [--json-out FILE]
    Rules (HTML text only; svg illustrations are artwork):
      scale      adjacent distinct font sizes differ by a ratio inside --ratio (a modular scale, not 14/16/17/18).
@@ -18,8 +18,8 @@ import { createRequire } from "node:module";
 
 const args = process.argv.slice(2);
 const flag = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const file = args.find((a) => a.endsWith(".html"));
-if (!file) { console.error("usage: node typography-check.mjs page.html [options]"); process.exit(2); }
+const file = args.find((a) => /^https?:\/\//.test(a) || /\.html?$/i.test(a)); // an HTML file or a URL
+if (!file) { console.error("usage: node typography-check.mjs page.html|URL [options]"); process.exit(2); }
 const [rMin, rMax] = flag("--ratio", "1.2,1.34").split(",").map(Number);
 const proseLh = Number(flag("--prose-lh", 1.5)), headLh = Number(flag("--head-lh", 1.5));
 const measure = Number(flag("--measure", 40)), rhythm = Number(flag("--rhythm", 8));
@@ -134,7 +134,7 @@ let browser;
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ["--no-sandbox"] });
   const page = await browser.newPage({ viewport: { width: 794, height: 1123 } });
-  await page.goto(pathToFileURL(path.resolve(file)).href, { waitUntil: "load" });
+  await page.goto(/^https?:\/\//.test(file) ? file : pathToFileURL(path.resolve(file)).href, { waitUntil: "load" }); // a file, or a URL
   await page.evaluate(() => document.fonts.ready);
   const r = await page.evaluate(inPage, [lines, 0.5, proseLh, headLh, measure, rhythm, cfg]);
   const bad = [];

@@ -12,11 +12,17 @@
    Prints the browser version and the fonts the page actually rendered with (for the report).
    --summary groups the misalignments per check (count + the first few offenders) instead of printing every one.
    Check types: row, column, size, gaps, type, style, noClip, noWrap (lines of a code/terminal block stay whole),
-   center(ed), distance, anyOf, widow (stub last lines). */
+   center(ed), distance, anyOf, widow (stub last lines), inViewport (whole element on screen, no scrolling).
+   Actions (to reach a state before measuring; apps and games often need more than a click):
+     {"click": SEL}  {"press": KEY}  {"waitFor": SEL}  {"wait": MS}  {"hold": SEL, "ms": 2000} (long press)
+     {"eval": "js expression or statements"}  (runs in the page; may return a promise)  — each also takes "waitMs".
+   "hooks": ["data-qa", "data-testid"] (default) are the attributes used to name elements in reports.
+   "freshContext": true gives every page x viewport empty storage; "touch": true emulates a touch screen. */
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
+import { runAction } from "./actions.mjs"; // copy actions.mjs next to this file
 
 const args = process.argv.slice(2);
 const cfgPath = args.find((a) => a.endsWith(".json") && args[args.indexOf(a) - 1] !== "--json-out");
@@ -55,7 +61,7 @@ const fail = (where, check, msg, detail = "") => { issues.push({ where, check, m
 const f1 = (n) => (Math.round(n * 10) / 10).toFixed(1);
 
 /* ---------- in-page measurement ---------- */
-function measureInPage([sels, rowOf]) {
+function measureInPage([sels, rowOf, hooks]) {
   const ctx = document.createElement("canvas").getContext("2d");
   const visible = (el) => {
     const s = getComputedStyle(el);
@@ -103,10 +109,12 @@ function measureInPage([sels, rowOf]) {
     return { baseline: fr.top + (fr.height - (a + d)) / 2 + a, textLeft: left, textRight: lr.right };
   };
   const label = (el) => {
-    const qa = el.getAttribute("data-qa");
-    if (qa) return `[data-qa=${qa}]`;
+    for (const h of hooks ?? ["data-qa"]) { const v = el.getAttribute(h); if (v) return `[${h}=${v}]`; }
     let s = el.tagName.toLowerCase();
     if (el.id) s += `#${el.id}`;
+    const aria = el.getAttribute("aria-label");
+    if (aria) s += `[aria-label="${aria.slice(0, 24)}"]`;
+    else if (typeof el.className === "string" && el.className.trim()) s += "." + el.className.trim().split(/\s+/)[0];
     return s;
   };
   const out = []; const seen = new Set();
@@ -121,6 +129,7 @@ function measureInPage([sels, rowOf]) {
         width: r.width, height: r.height, centerX: r.left + r.width / 2, centerY: r.top + r.height / 2, ...text(el),
         span: { top: k.top, bottom: k.bottom, left: k.left, right: k.right },
         ownText, fontSize: parseFloat(s.fontSize), lineHeight: s.lineHeight,
+        inSvg: el instanceof SVGElement && el.tagName.toLowerCase() !== "svg", // text drawn inside an illustration
         clipX: el.clientWidth > 0 ? el.scrollWidth - el.clientWidth : 0,
         slackX: (() => {
           if (/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) return null;
@@ -129,6 +138,19 @@ function measureInPage([sels, rowOf]) {
           return u.width > 0 ? cw - u.width : null;
         })(),
         style: { "font-variant-numeric": s.fontVariantNumeric, "text-align": s.textAlign, "white-space": s.whiteSpace },
+        clip: (() => { // the part of the screen it can show in: the viewport cut down by every ancestor that clips or scrolls
+          let c = { top: 0, left: 0, bottom: window.innerHeight, right: document.documentElement.clientWidth, by: null };
+          for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+            const st = getComputedStyle(a);
+            if (st.overflowX === "visible" && st.overflowY === "visible") continue;
+            const b = a.getBoundingClientRect();
+            if (b.bottom < c.bottom) c = { ...c, bottom: b.bottom, by: label(a) };
+            if (b.right < c.right) c = { ...c, right: b.right, by: label(a) };
+            if (b.top > c.top) c = { ...c, top: b.top, by: label(a) };
+            if (b.left > c.left) c = { ...c, left: b.left, by: label(a) };
+          }
+          return c;
+        })(),
         vw: document.documentElement.clientWidth, vh: window.innerHeight });
     }
   }
@@ -254,6 +276,8 @@ const onScale = (v, scale) => Math.abs(v - Math.round(v / scale) * scale) <= TOL
 
 function typeCheck(where, chk, items) {
   const grid = chk.grid ?? 4;
+  // text inside an svg illustration (clock numbers, map labels) is artwork: sized by its viewBox, not the type scale
+  if (!chk.includeSvg) items = items.filter((i) => !i.inSvg);
   if (chk.maxDistinct) {
     const sizes = [...new Set(items.filter((i) => i.ownText).map((i) => Math.round(i.fontSize * 10) / 10))].sort((a, b) => a - b);
     if (sizes.length > chk.maxDistinct) fail(where, chk.name, `${sizes.length} font sizes in use (max ${chk.maxDistinct}): ${sizes.join(", ")}`);
@@ -320,7 +344,7 @@ function distanceCheck(where, chk, a, b) {
 /* ---------- run ---------- */
 let warnedWidths = false;
 async function runCheck(page, where, vp, chk) {
-  const measure = (sels, rowOf = null) => page.evaluate(measureInPage, [sels, rowOf]);
+  const measure = (sels, rowOf = null) => page.evaluate(measureInPage, [sels, rowOf, cfg.hooks ?? ["data-qa", "data-testid"]]);
   if (chk.type === "overflow") {
     const ov = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if (ov > TOL) fail(where, chk.name, `horizontal overflow ${f1(ov)}px`);
@@ -379,6 +403,16 @@ async function runCheck(page, where, vp, chk) {
       else { const d = it.top - (it.vh - it.bottom); if (Math.abs(d) > 2 * TOL) fail(where, chk.name, `not centred: top ${f1(it.top)} bottom ${f1(it.vh - it.bottom)}`, it.label); }
     }
   }
+  else if (chk.type === "inViewport") {
+    // the whole element is on screen without scrolling: a game board, a dialog's buttons, a phone app's main controls
+    // ... and not cut off by a scrolling or clipping container (a page that scrolls inside a fixed frame)
+    for (const it of items) {
+      const c = it.clip;
+      const out = [it.top < c.top - TOL && `top ${f1(it.top)} < ${f1(c.top)}`, it.left < c.left - TOL && `left ${f1(it.left)} < ${f1(c.left)}`,
+        it.bottom > c.bottom + TOL && `bottom ${f1(it.bottom)} > ${f1(c.bottom)}`, it.right > c.right + TOL && `right ${f1(it.right)} > ${f1(c.right)}`].filter(Boolean);
+      if (out.length) fail(where, chk.name, `not fully on screen (needs scrolling): ${out.join(", ")}${c.by ? ` (cut by ${c.by})` : ""}`, it.label);
+    }
+  }
   else fail(where, chk.name ?? "?", `unknown check type ${chk.type}`);
 }
 
@@ -401,20 +435,25 @@ async function fontsUsed(page) {
 let browser; let env = null;
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
-  const page = await browser.newPage();
-  await page.emulateMedia({ reducedMotion: "reduce", colorScheme: cfg.colorScheme ?? "light" });
+  // "freshContext": true starts every page x viewport with empty storage (apps and games that save to
+  // localStorage would otherwise carry state from one page to the next); "touch": true emulates a touch screen.
+  const fresh = cfg.freshContext ?? false;
+  const newPage = async () => {
+    const ctx = await browser.newContext({ hasTouch: cfg.touch ?? false, deviceScaleFactor: cfg.deviceScaleFactor ?? 1 });
+    const p = await ctx.newPage();
+    await p.emulateMedia({ reducedMotion: "reduce", colorScheme: cfg.colorScheme ?? "light" });
+    return p;
+  };
+  let page = await newPage();
   if (shotDir) fs.mkdirSync(shotDir, { recursive: true });
   for (const pg of cfg.pages) {
     for (const vp of pg.viewports ?? viewports) {
       const where = `${pg.name}@${vp.width}`;
+      if (fresh) { await page.context().close(); page = await newPage(); }
       await page.setViewportSize(vp);
       await page.goto(toUrl(pg.url), { waitUntil: "load" });
       await page.evaluate(() => document.fonts.ready);
-      for (const act of pg.actions ?? []) {
-        if (act.click) await page.click(act.click, { timeout: 3000 });
-        if (act.press) await page.keyboard.press(act.press);
-        await page.waitForTimeout(act.waitMs ?? 150);
-      }
+      for (const act of pg.actions ?? []) await runAction(page, act);
       if (!env) env = { browser: `${browser.browserType().name()} ${browser.version()}`, fonts: await fontsUsed(page).catch(() => ["(unavailable)"]) };
       const full = (pg.screenshot ?? (pg.actions?.length ? "viewport" : "full")) === "full";
       if (shotDir) await page.screenshot({ path: path.join(shotDir, `${pg.name}-${vp.width}.png`), fullPage: full });

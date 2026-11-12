@@ -13,7 +13,8 @@ description: >-
 Measure, never eyeball. A number from `getBoundingClientRect` beats any judgement of a screenshot. The tools in this skill's `templates/` folder:
 - `tokens.css`: spacing, type pairs, controls, columns and overlays
 - `align.config.example.json`: a **complete** check config, one `_section` per component
-- `alignment-guard.mjs`: multi-viewport, multi-state browser checks
+- `alignment-guard.mjs`: multi-viewport, multi-state browser checks (with `actions.mjs` beside it)
+- `snapshot.mjs`: freezes every page and state into HTML files for the file-based checks
 - `spacing-lint.mjs`: spacing plus line-height and font-size
 
 A vague request ("make it tidy, good on laptop and tablet") still means every rule below. Turn the request into checks; don't wait for numbers.
@@ -24,12 +25,13 @@ A vague request ("make it tidy, good on laptop and tablet") still means every ru
 - **Empty repo or new page** → the from-zero path. Write no component CSS before Z4.
 - **The project has no tokens, guard or lint** → do Z1–Z3 first.
 - **A printed document, PDF or fixed-size sheet** → the print path below, then the rules.
+- **An app or a game** (screens behind clicks, a touch screen, phone and tablet both ways round) → the apps-and-games path below, then the rules.
 
 ## From zero (and for any project missing the tools)
 
 1. **Z1 Tokens.** Copy `templates/tokens.css` and load it first. Map any existing tokens onto these names; never keep two scales. Fix the type pairs (`--fs-*` with `--lh-*`) and the breakpoints now.
 2. **Z2 Lint.** Copy `spacing-lint.mjs` and run `node scripts/spacing-lint.mjs <css-dir>`. It reads values from `tokens.css` (or `--tokens FILE`) and never lints that file.
-3. **Z3 Guard config, by deletion.** Install `playwright-core` (`npm i -D playwright-core`; set `CHROME_PATH` if there is no bundled browser) and copy `alignment-guard.mjs`. Then:
+3. **Z3 Guard config, by deletion.** Install `playwright-core` (`npm i -D playwright-core`; set `CHROME_PATH` if there is no bundled browser) and copy `alignment-guard.mjs` with `actions.mjs` next to it. Then:
    - Copy `align.config.example.json` to `align.config.json`.
    - Rename its `data-qa` hooks to yours. Use hooks, never class names.
    - Repeat each "repeat per field/column" check for every field and every number column.
@@ -47,6 +49,18 @@ Same rules, different set-up. Check the HTML source in a browser, then print it 
 2. Rename the `data-qa` hooks. Boxes, lists and table cells start their text on one `--inset`.
 3. Add the document checks: the guard's `widow` (no wrapped paragraph ends in a stub line), `node typography-check.mjs <page.html>` (scale, leading, line length, rhythm, alignment lines) and `node palette-check.mjs <page.html>` (colours, hue families, contrast) and `node consistency-check.mjs <page.html>` (icons from one font, one radius scale, few border and stroke widths, shadows on all panels or none, illustrations at one scale, one table column width, consistent text). The leading and line-length rules apply to CJK text; pass `--prose-lh`, `--measure` and `--lines` for your own numbers.
 4. Once the guards pass, run `node compare-sheets.mjs before.html after.html --out sheets --strict` and look at every pair, starting with the sheets that changed most. `--strict` fails when a block of text with the same words now takes more lines: a fix that moves a sentence from one line to two is a regression, even when every guard is green. The guards cannot see inside SVG illustrations or content drawn by CSS (a list bullet written as a CSS escape rendered as ",2" and passed every check), and a fix can break something nobody asked about (a command wrapped inside a terminal after its padding grew). A new defect found this way becomes a new check, not just a fix.
+
+## Apps and games (state behind clicks, touch, several orientations)
+
+Same rules; the set-up reaches every screen and state first.
+
+1. **Viewports are the devices.** List the real ones, e.g. phone `390x844`, tablet upright `834x1194`, tablet sideways `1194x834`, and set `"touch": true`.
+2. **One page per state, reached by actions.** Use `url` with the app's debug or seed parameters, then `actions` (`actions.mjs` beside the guard): `click`, `waitFor`, `hold` (long press), `wait`, and `eval` to set state through a debug hook (`window.__app.set(...)`). Set `"freshContext": true` so saved state does not leak from one page into the next. Name elements with the hooks the app already has: `"hooks": ["data-testid"]`.
+3. **Add the app checks:** `size` with `"height": {"min": 44}, "width": {"min": 44}` on every enabled button (touch targets), and `inViewport` on the main play or form area and its primary button (no scrolling to reach what you must do; a scrolling container that cuts them off fails too).
+4. **Freeze the states for the file tools.** `node snapshot.mjs align.config.json --out snaps/before` writes `<page>-<width>.html` for every page and viewport; run `palette-check`, `typography-check` and `consistency-check` on those files, and `compare-sheets` on before/after pairs (`--width`/`--height` of that viewport).
+5. **Look at before/after side by side** (`compare-sheets`): a fix for one rule can break what no rule covers, e.g. bigger touch targets that push the last row off a phone screen. Turn what you find into a check.
+6. **Artwork is not interface.** Pass `--artwork ".scene, .avatar, …"` to `palette-check` and `consistency-check` for illustrations, sprites and drawn clocks or maps: their fills, strokes and scales are left out, their text is still checked for contrast. The guard's `type` check skips text inside an svg (set `"includeSvg": true` to keep it).
+7. **Many font sizes, one grid:** `line-height: round(nearest, 1.35em, 4px)` puts every size on the 4px grid with one rule; the lint accepts `round(…, Npx)` with N a multiple of 4.
 
 ## Step 0 — inventory and "before"
 
@@ -69,7 +83,7 @@ Same rules, different set-up. Check the HTML source in a browser, then print it 
 | R10 | Icons sit in a fixed slot, centred, with no margin nudges. | guard `center` |
 | R11 | Popovers sit `--popover-offset` from the trigger, on a trigger edge. Dialogs are centred (`showModal()`). | guard `distance`, `anyOf`, `centered` |
 | R12 | One content column. Card rows stretch, and their inner parts align. | guard `column`, `row` `rowOf`, `gaps` |
-| R13 | Every viewport and every open state passes, with no horizontal overflow. | guard `viewports`, `pages[].actions`, `noOverflow` |
+| R13 | Every viewport and every open state passes, with no horizontal overflow; on apps and games the main area needs no scrolling. | guard `viewports`, `pages[].actions`, `noOverflow`, `inViewport` |
 | R14 | Fix the cause. Never delete, hide or rename hooks to pass. | guard `missing` |
 
 Exception: a sub-4px optical fix may carry a same-line `/* px-ok: <reason> */`. Allow at most 3 per screen, and list them.

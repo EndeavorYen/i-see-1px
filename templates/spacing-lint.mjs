@@ -10,6 +10,7 @@
    Type (unless --no-type):
      line-height (and the "/x" part of the font shorthand) must be var(--lh-*) or inherit, and the token
      must resolve to px on the 4px grid. font-size (and the font shorthand size) must be var(--fs-*) or inherit.
+     A line height of round(nearest, 1.4em, 4px) (any strategy, any size, a step that is a multiple of 4px) is on the grid.
      --loose-type: any token name or a raw value is fine, as long as line-height resolves to px on the 4px
      grid (unitless ratios, em, % and normal still fail) and font-size is a whole px or rem value.
    Escape hatch: a same-line comment containing "px-ok" (say why).
@@ -55,7 +56,7 @@ for (const file of defFiles) for (const m of fs.readFileSync(file, "utf8").match
 
 function spacingProblems(value, seen = new Set()) {
   const problems = [];
-  for (const [, num, unit] of value.matchAll(LEN)) {
+  for (const [, num, unit] of value.matchAll(new RegExp(LEN))) { // a fresh copy: LEN is global and .test() moves its lastIndex
     const px = Math.abs(parseFloat(num) * TO_PX[unit]);
     if (px === 0) continue;
     if (Math.abs(px / 4 - Math.round(px / 4)) > 0.005) problems.push(`${num}${unit}${unit === "px" || unit === "rem" ? "" : " = " + Math.round(px * 10) / 10 + "px"} not on 4px scale`);
@@ -74,12 +75,16 @@ function resolve(v) {
   while (/^var\(/.test(v) && !seen.has(v)) { seen.add(v); const m = v.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)/); v = defs.get(m[1]) ?? m[2]?.trim() ?? null; if (v == null) return null; }
   return v;
 }
+// round(<strategy>, <size>, Npx) lands on a multiple of N px whatever <size> is: line-height: round(nearest, 1.4em, 4px)
+// keeps every font size on the 4px grid with one rule (CSS Values 4; Chrome 125, Safari 15.4, Firefox 118).
+const onGridRound = (v, grid = 4) => { const m = v.match(/^round\(\s*(?:(?:nearest|up|down|to-zero)\s*,\s*)?[^,]+,\s*(\d*\.?\d+)px\s*\)$/); return !!m && parseFloat(m[1]) % grid === 0; };
 function lineHeightProblems(value) {
   const v = value.trim();
-  if (/^(inherit|initial|unset)$/.test(v)) return [];
+  if (/^(inherit|initial|unset|0|0px)$/.test(v)) return []; // 0: no line box (an icon wrapper); 0 is on every grid
   if (looseType) {
     const r = resolve(v);
     if (r == null) return [`${v} is not defined`];
+    if (onGridRound(r)) return [];
     const px = r.match(/^(\d*\.?\d+)px$/);
     if (!px) return [`line-height ${v}${r !== v ? " = " + r : ""} is not px on the 4px grid`];
     return parseFloat(px[1]) % 4 ? [`line-height ${r} is not a multiple of 4px`] : [];
@@ -89,6 +94,7 @@ function lineHeightProblems(value) {
   let def = defs.get(m[1]); const seen = new Set();
   while (def && /^var\(/.test(def) && !seen.has(def)) { seen.add(def); def = defs.get(def.match(/--[\w-]+/)[0]); }
   if (def == null) return [`${m[1]} is not defined`];
+  if (onGridRound(def)) return [];
   const px = def.match(/^(\d*\.?\d+)px$/);
   if (!px) return [`${m[1]}: ${def} is not px; line-heights sit on a 4px grid in px`];
   if (parseFloat(px[1]) % 4 !== 0) return [`${m[1]}: ${def} is not a multiple of 4px`];
@@ -127,7 +133,7 @@ for (const file of files) {
     if (scan && !line.includes("px-ok")) {
       for (const m of line.matchAll(PROP)) {
         const [, prop, value] = m;
-        if (POSITIONAL.has(prop) && !/calc\(/.test(value) && !LEN.test(value)) continue;
+        if (POSITIONAL.has(prop) && !/calc\(/.test(value) && !new RegExp(LEN).test(value)) continue;
         let problems;
         if (prop === "line-height") { if (!typeRules) continue; problems = lineHeightProblems(value); }
         else if (prop === "font-size") { if (!typeRules) continue; problems = fontSizeProblems(value); }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Consistency check: the things an obsessive designer sees at a glance and a spacing guard does not.
-   Usage:  node consistency-check.mjs page.html [--max-radii 4] [--max-borders 3] [--max-strokes 2] [--svg-scale equal|N]
+   Usage:  node consistency-check.mjs page.html|URL [--max-radii 4] [--max-borders 3] [--max-strokes 2] [--svg-scale equal|N]
                                       [--tolerance 0.02] [--primary-fonts 2] [--sheet SELECTOR] [--role-attr data-qa] [--json-out FILE]
    Rules (measured on the rendered page; svg is read where it matters):
      symbols     icon characters (check marks, arrows, warning signs, circled numbers) are drawn by ONE font, and none by an emoji font.
@@ -13,6 +13,7 @@
      shadows     panels (rounded, filled boxes) either all have the same shadow or none do.
      roles       elements that share a role attribute (data-qa) share one radius and one shadow.
      svg scale   every svg is drawn at the same scale (rendered width / viewBox width); --svg-scale N pins it, e.g. 1 for 1:1.
+                 --artwork SEL leaves out pictures (a game scene, a drawn clock): they are not figures of the document.
                  Icons (svg smaller than 48px both ways) are not illustrations and are left out of the radii, stroke and scale rules.
      tables      the first column of every table has the same width.
      text        one ellipsis form, one family of quote marks, one arrow form, one casing of a mixed-case word (PowerShell, not Powershell).
@@ -27,11 +28,14 @@ import { createRequire } from "node:module";
 
 const args = process.argv.slice(2);
 const flag = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const file = args.find((a) => /\.html?$/i.test(a));
-if (!file) { console.error("usage: node consistency-check.mjs page.html [--max-radii 4] [--max-borders 3] [--max-strokes 2] [--svg-scale equal|N] [--primary-fonts 2]"); process.exit(2); }
+const file = args.find((a) => /^https?:\/\//.test(a) || /\.html?$/i.test(a)); // an HTML file or a URL
+if (!file) { console.error("usage: node consistency-check.mjs page.html|URL [--max-radii 4] [--max-borders 3] [--max-strokes 2] [--svg-scale equal|N] [--primary-fonts 2] [--artwork SEL]"); process.exit(2); }
 const maxRadii = Number(flag("--max-radii", 4)), maxBorders = Number(flag("--max-borders", 3)), maxStrokes = Number(flag("--max-strokes", 2));
 const svgScale = flag("--svg-scale", "equal"), tol = Number(flag("--tolerance", 0.02)), primaryN = Number(flag("--primary-fonts", 2));
 const sheetSel = flag("--sheet", "[data-qa=page]"), roleAttr = flag("--role-attr", "data-qa"), jsonOut = flag("--json-out");
+// --artwork SEL: svgs inside these (game scenes, a drawn clock, a map) are pictures with their own scale and line weights;
+// they are left out of the svg radii, stroke and scale rules, like icons are
+const artworkSel = flag("--artwork", "");
 
 const req = createRequire(path.join(process.cwd(), "noop.js"));
 let chromium;
@@ -44,7 +48,7 @@ for (const name of ["playwright-core", "playwright"]) {
 if (!chromium) { console.error("consistency check: needs playwright-core (npm i --no-save playwright-core)"); process.exit(2); }
 
 /* ---------- in the page ---------- */
-function collect([sheetSel, roleAttr]) {
+function collect([sheetSel, roleAttr, artworkSel]) {
   const SYMBOL = /[←-⇿⌀-⏿①-⓿■-➿⤀-⥿⬀-⯿\u{1f300}-\u{1faff}]/gu;
   const parse = (s) => { const m = (s || "").match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] ?? 1 }; };
   const r1 = (v) => Math.round(v * 10) / 10;
@@ -79,6 +83,7 @@ function collect([sheetSel, roleAttr]) {
     if (!visible(svg)) continue;
     const sc = svgScaleOf(svg), r = svg.getBoundingClientRect();
     if (r.width < 48 && r.height < 48) continue;   // an icon is a glyph, not an illustration: its radii, strokes and scale are the icon set's business
+    if (artworkSel && svg.closest(artworkSel)) continue; // artwork (--artwork): not a figure in the document
     out.svgScales.push({ i: out.svgScales.length + 1, scale: Math.round(sc * 1000) / 1000, width: Math.round(r.width), viewBox: svg.getAttribute("viewBox") });
     for (const el of svg.querySelectorAll("*")) {
       const s = getComputedStyle(el);
@@ -134,9 +139,9 @@ let browser;
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ["--no-sandbox"] });
   const page = await browser.newPage({ viewport: { width: 794, height: 1123 } });
-  await page.goto(pathToFileURL(path.resolve(file)).href, { waitUntil: "load" });
+  await page.goto(/^https?:\/\//.test(file) ? file : pathToFileURL(path.resolve(file)).href, { waitUntil: "load" }); // a file, or a URL
   await page.evaluate(() => document.fonts.ready);
-  const r = await page.evaluate(collect, [sheetSel, roleAttr]);
+  const r = await page.evaluate(collect, [sheetSel, roleAttr, artworkSel]);
 
   // which font really draws each symbol: one probe per distinct (symbol, font stack)
   const client = await page.context().newCDPSession(page);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Palette check: measure the colours a page really renders with, in a real browser.
-   Usage:  node palette-check.mjs page.html [--allow blue,green,red,gray] [--max-colors 28] [--max-accent 10] [--sheet SELECTOR] [--json-out FILE]
+   Usage:  node palette-check.mjs page.html|URL [--allow blue,green,red,gray] [--artwork SEL] [--max-colors 28] [--max-accent 10] [--sheet SELECTOR] [--json-out FILE]
    Reports   distinct colours, hue families, WCAG contrast of every text run (4.5:1, or 3:1 for large text),
              and how much of the page area is covered by saturated "accent" fills.
    Exit      0 = pass, 1 = violations, 2 = usage/runtime error.
@@ -12,9 +12,12 @@ import { createRequire } from "node:module";
 
 const args = process.argv.slice(2);
 const flag = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const file = args.find((a) => a.endsWith(".html"));
-if (!file) { console.error("usage: node palette-check.mjs page.html [--allow blue,green,red,gray] [--max-colors N] [--max-accent PCT]"); process.exit(2); }
+const file = args.find((a) => /^https?:\/\//.test(a) || /\.html?$/i.test(a)); // an HTML file or a URL
+if (!file) { console.error("usage: node palette-check.mjs page.html|URL [--allow blue,green,red,gray] [--max-colors N] [--max-accent PCT]"); process.exit(2); }
 const allow = new Set(flag("--allow", "blue,green,red,gray").split(","));
+// --artwork SEL: pictures (a game scene, a drawn clock, a map). Their fills are not the interface palette and are left out of the
+// colour count, the hue families and the accent area; text drawn on them is still checked for contrast.
+const artworkSel = flag("--artwork", "");
 const maxColors = Number(flag("--max-colors", 28));
 const maxAccent = Number(flag("--max-accent", 10));
 const jsonOut = flag("--json-out");
@@ -30,7 +33,7 @@ for (const name of ["playwright-core", "playwright"]) {
 }
 if (!chromium) { console.error("palette check: needs playwright-core"); process.exit(2); }
 
-function inPage(sheetSel) {
+function inPage([sheetSel, artworkSel]) {
   const parse = (s) => { const m = (s || "").match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] ?? 1 }; };
   const hex = (c) => "#" + [c.r, c.g, c.b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("").toUpperCase();
   const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
@@ -63,11 +66,12 @@ function inPage(sheetSel) {
   for (const el of document.body.querySelectorAll("*")) {
     const s = getComputedStyle(el), svg = el instanceof SVGElement;
     const rect = el.getBoundingClientRect();
-    if (!svg) {
+    const art = !!artworkSel && !!el.closest(artworkSel); // a picture: its fills are not the palette (text is still checked)
+    if (!art && !svg) {
       const bg = parse(s.backgroundColor); if (bg && bg.a > 0) { note(bg, "bg"); if (isAccent(bg)) accentArea += rect.width * rect.height; }
       for (const side of ["Top", "Right", "Bottom", "Left"]) if (parseFloat(s[`border${side}Width`]) > 0 && s[`border${side}Style`] !== "none") note(parse(s[`border${side}Color`]), "border");
       if (s.backgroundImage !== "none") for (const c of stops(s.backgroundImage)) note(c, "gradient");
-    } else if (SHAPES.has(el.tagName.toLowerCase())) {
+    } else if (!art && SHAPES.has(el.tagName.toLowerCase())) {
       const f = parse(s.fill), st = parse(s.stroke);
       if (f && s.fill !== "none") { note(f, "svg-fill"); if (isAccent(f)) accentArea += rect.width * rect.height; }
       if (st && s.stroke !== "none") note(st, "svg-stroke");
@@ -80,15 +84,27 @@ function inPage(sheetSel) {
     if (svg) {
       el.scrollIntoView({ block: "center", inline: "center" }); // hit-testing only works inside the viewport
       const r2 = el.getBoundingClientRect(), cx = r2.left + r2.width / 2, cy = r2.top + r2.height / 2; bg = null;
-      for (const e of document.elementsFromPoint(cx, cy)) {
-        if (e === el) continue;
-        if (e instanceof SVGElement) { if (SHAPES.has(e.tagName.toLowerCase())) { const f = getComputedStyle(e).fill; if (f && f !== "none") { bg = parse(f); break; } } }
-        else { bg = bgOf(e); break; }
+      // the background is what lies BENEATH the text: skip the text itself and anything painted on top of it
+      // (a clock hand crossing a number), and read a shape's stroke colour when the point is on its stroke only
+      const stack = document.elementsFromPoint(cx, cy), at = stack.indexOf(el);
+      for (const e of at >= 0 ? stack.slice(at + 1) : stack) {
+        if (e === el || el.contains(e)) continue;
+        if (e instanceof SVGElement) {
+          if (!SHAPES.has(e.tagName.toLowerCase())) continue;
+          const cs = getComputedStyle(e);
+          let inFill = true, onStroke = false;
+          try {
+            const m = e.getScreenCTM()?.inverse(); const svgRoot = e.ownerSVGElement;
+            if (m && svgRoot && e.isPointInFill) { const p = svgRoot.createSVGPoint(); p.x = cx; p.y = cy; const q = p.matrixTransform(m); inFill = e.isPointInFill(q); onStroke = e.isPointInStroke(q); }
+          } catch {}
+          if (inFill && cs.fill && cs.fill !== "none") { bg = parse(cs.fill); break; }
+          if (onStroke && cs.stroke && cs.stroke !== "none") { bg = parse(cs.stroke); break; }
+        } else { bg = bgOf(e); break; }
       }
       bg = bg ?? bgOf(el.closest("svg"));
     } else bg = bgOf(el);
     if (!fg) continue;
-    note(fg, svg ? "svg-text" : "text");
+    if (!art) note(fg, svg ? "svg-text" : "text");
     const f2 = over(fg, bg), need = large ? 3 : 4.5, a = lum(f2), b = lum(bg), ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     if (ratio < need) low.push({ ratio: Math.round(ratio * 100) / 100, need, fg: hex(f2), bg: hex(bg), size: Math.round(fs), text: el.textContent.trim().replace(/\s+/g, " ").slice(0, 28), where: svg ? "svg" : (el.getAttribute("data-qa") || el.tagName.toLowerCase()) });
   }
@@ -100,9 +116,9 @@ let browser;
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ["--no-sandbox"] });
   const page = await browser.newPage({ viewport: { width: 794, height: 1123 } });
-  await page.goto(pathToFileURL(path.resolve(file)).href, { waitUntil: "load" });
+  await page.goto(/^https?:\/\//.test(file) ? file : pathToFileURL(path.resolve(file)).href, { waitUntil: "load" }); // a file, or a URL
   await page.evaluate(() => document.fonts.ready);
-  const r = await page.evaluate(inPage, sheet);
+  const r = await page.evaluate(inPage, [sheet, artworkSel]);
   const fam = {};
   for (const c of r.colors) (fam[c.family] ??= []).push(c.hex);
   const bad = [];
