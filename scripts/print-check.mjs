@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* Dogfood check for the A4 print example in docs/demo/print: every tool in templates/ runs on both pages.
-   Usage:  node scripts/print-check.mjs
+   Usage:  node scripts/print-check.mjs [--sheets DIR]
+           --sheets DIR also writes the before/after sheets (one image per page, plus before-after.pdf) to DIR
    Needs:  npm i --no-save playwright-core   (set CHROME_PATH if Playwright has no bundled Chromium)
    Runs on without/ and with/:
      templates/spacing-lint.mjs, alignment-guard.mjs, palette-check.mjs, typography-check.mjs
@@ -70,6 +71,16 @@ const rows = [
 const w = Math.max(...rows.map((r) => r[0].length));
 console.log(`${"Measured on the rendered page".padEnd(w)} | without | with`);
 for (const [label, k] of rows) console.log(`${label.padEnd(w)} | ${String(without[k]).padStart(7)} | ${String(withSkill[k]).padStart(4)}`);
+
+// --sheets DIR: also write the before/after sheets (templates/compare-sheets.mjs), the side-by-side view of every page
+const sheetsAt = process.argv.indexOf("--sheets");
+if (sheetsAt > 0) {
+  const dir = process.argv[sheetsAt + 1];
+  if (!dir) { console.error("print check: --sheets needs a directory"); process.exit(2); }
+  const r = node(["templates/compare-sheets.mjs", path.join(demo, "without/index.html"), path.join(demo, "with/index.html"), "--out", path.resolve(dir), "--labels", "Without the skill,With the skill"]);
+  process.stdout.write(r.stdout);
+  if (r.status !== 0) { console.error(r.stderr); process.exit(2); }
+}
 
 const mustBeClean = ["lint", "guardFailed", "stubs", "typography", "outside", "lowContrast"];
 const mustFail = ["lint", "guardFailed", "typography", "outside"]; // each tool needs a defect on the "without" page

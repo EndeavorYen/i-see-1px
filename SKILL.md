@@ -46,7 +46,7 @@ Same rules, different set-up. Check the HTML source in a browser, then print it 
 1. Copy `templates/tokens.print-a4.css` as `tokens.css` and `templates/align.config.print.example.json` as `align.config.json`. The config has one viewport (`allowSingleViewport`) and the sheet size. Give every sheet `min-height`, never `height`, so content that overflows fails the `size` check.
 2. Rename the `data-qa` hooks. Boxes, lists and table cells start their text on one `--inset`.
 3. Add the document checks: the guard's `widow` (no wrapped paragraph ends in a stub line), `node typography-check.mjs <page.html>` (scale, leading, line length, rhythm, alignment lines) and `node palette-check.mjs <page.html>` (colours, hue families, contrast). The leading and line-length rules apply to CJK text; pass `--prose-lh`, `--measure` and `--lines` for your own numbers.
-4. Open every page once the guards pass. They cannot see inside SVG illustrations or content drawn by CSS (a list bullet written as a CSS escape rendered as ",2" and passed every check).
+4. Once the guards pass, run `node compare-sheets.mjs before.html after.html --out sheets` and look at every pair, starting with the sheets that changed most. The guards cannot see inside SVG illustrations or content drawn by CSS (a list bullet written as a CSS escape rendered as ",2" and passed every check), and a fix can break something nobody asked about (a command wrapped inside a terminal after its padding grew). A new defect found this way becomes a new check, not just a fix.
 
 ## Step 0 — inventory and "before"
 

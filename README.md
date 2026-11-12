@@ -39,6 +39,7 @@ templates/spacing-lint.mjs                  # lint: spacing scale, line-height, 
 templates/alignment-guard.mjs               # browser checks: edges, rows, baselines, gaps, overlays, stub lines, wrapped code
 templates/typography-check.mjs              # type scale, leading, line length, rhythm, alignment lines
 templates/palette-check.mjs                 # colours, hue families, WCAG contrast
+templates/compare-sheets.mjs                # every page of a before and an after file side by side, with the share of changed pixels
 templates/align.config.example.json         # a complete example check config, one section per component
 templates/align.config.print.example.json   # the same for a printed document
 scripts/readme-check.mjs                    # this README's own layout check (we dogfood it)
@@ -103,7 +104,7 @@ node scripts/alignment-guard.mjs align.config.json --summary   # one entry per c
 npm i --no-save playwright-core
 node scripts/readme-check.mjs   # README pairs, widths, captions, headings, palette
 node scripts/site-check.mjs     # spacing lint + alignment guard on docs/index.html at 1280 and 768, in both example states
-node scripts/print-check.mjs    # every tool on the A4 example: "with" is clean, "without" fails each one
+node scripts/print-check.mjs    # every tool on the A4 example: "with" is clean, "without" fails each one (--sheets DIR adds the side-by-side pages)
 node scripts/make-compare.mjs   # regenerates docs/compare/06-10 from the live site (--only terms,orphan)
 ```
 
@@ -133,6 +134,13 @@ The example in `docs/demo/print` is a quick start for an invented command-line t
 | Typography violations | 45 | 0 |
 | Colours | 25 | 19 |
 | Hue families outside the palette | 1 | 0 |
+
+**Look at the result, too.** The guards see what they were told to look for. When this example was fixed, a side-by-side view of the two pages showed a command wrapped inside a terminal, which no check covered; `noWrap` exists because of that. `compare-sheets.mjs` makes the view one command, and prints the share of pixels that changed on each sheet, so the pages that moved most get looked at first:
+
+```bash
+node templates/compare-sheets.mjs before.html after.html --out sheets   # sheet-01.png ... and before-after.pdf
+node scripts/print-check.mjs --sheets sheets                            # the same for the example in docs/demo/print
+```
 
 Numbers that depend on text width, such as stub last lines, move with the fonts. These were measured in `chromium 157.0.8103.78` on Windows, with Segoe UI and Consolas. The pairs under [Side-by-side: an A4 print guide](#side-by-side-an-a4-print-guide) show the same pages with the measurements drawn on them.
 
