@@ -58,6 +58,20 @@ function inPage([lineOffsets, tol, proseLh, headLh, measure, rhythm, cfg]) {
   };
   const textLen = (el) => el.textContent.replace(/\s+/g, "").length;
   const ownText = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+  // How many lines the text of el really takes: the boxes of its text nodes, grouped by vertical centre.
+  // The border box is no measure of that: padding and a fixed height are not lines, and a flex item is blockified.
+  const renderedLines = (el) => {
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT) });
+    const boxes = [];
+    for (let n; (n = w.nextNode());) {
+      const rg = document.createRange(); rg.selectNodeContents(n);
+      for (const q of rg.getClientRects()) if (q.width > 0 && q.height > 0) boxes.push({ c: (q.top + q.bottom) / 2, h: q.bottom - q.top });
+    }
+    boxes.sort((a, b) => a.c - b.c);
+    let lines = 0, last = null;
+    for (const b of boxes) { if (!last || b.c - last.c > Math.min(b.h, last.h) * 0.5) lines++; last = b; }
+    return lines;
+  };
   const label = (el) => (el.getAttribute("data-qa") || el.tagName.toLowerCase()) + ":" + el.textContent.replace(/\s+/g, " ").trim().slice(0, 18);
 
   for (const el of document.body.querySelectorAll("*")) {
@@ -66,7 +80,7 @@ function inPage([lineOffsets, tol, proseLh, headLh, measure, rhythm, cfg]) {
     if (r.width < 1 || s.display === "none") continue;
     const fs = parseFloat(s.fontSize), lh = parseFloat(s.lineHeight);
     out.sizes[fs] = (out.sizes[fs] ?? 0) + 1;
-    const rows = Math.round(r.height / lh);
+    const rows = renderedLines(el);
     const block = !["inline", "inline-block"].includes(s.display);
     if (block && rows >= 2 && CJK.test(el.textContent)) {
       if (lh / fs < proseLh - 0.001 && fs <= 24) out.leading.push(`${label(el)}  ${fs}/${lh} = ${(lh / fs).toFixed(2)} < ${proseLh}`);
