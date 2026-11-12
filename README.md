@@ -26,7 +26,7 @@ You can't unsee it. Now neither can your agent.
 - **Lint for magic px.** `spacing-lint.mjs` flags off-scale spacing, raw line-heights and stray font sizes in CSS, `<style>` blocks and inline styles. Absolute units (`mm`, `cm`, `in`, `pt`, `pc`) are converted to px and held to the same scale.
 - **Measured checks at multiple viewports.** `alignment-guard.mjs` runs `getBoundingClientRect` checks in headless Chromium at every viewport (e.g. 1280 and 768) and every open state (popover, dialog), and takes screenshots.
 - **Printed documents too.** The same tools run on an A4 sheet or the HTML source of a PDF: one fixed viewport, a check that no sheet is pushed taller, paired boxes of equal height, and no stub last lines. See [Printed documents](#printed-documents-a4-pdf).
-- **Type and colour, measured.** `typography-check.mjs` checks the type scale, leading, line length, vertical rhythm and alignment lines. `palette-check.mjs` counts the colours and hue families a page really renders with, and their WCAG contrast.
+- **Type and colour, measured.** `typography-check.mjs` checks the type scale, leading, line length, vertical rhythm and alignment lines. `palette-check.mjs` counts the colours and hue families a page really renders with, and their WCAG contrast. `consistency-check.mjs` checks what a designer sees at a glance: icons drawn by one font, one corner-radius scale for boxes and illustrations, few border and stroke widths, shadows on all panels or none, every illustration at one scale, tables with one first-column width, and consistent ellipses, quotes and spelling.
 - **An honest done-claim.** The agent pastes the guard and lint output, lists what it checked by eye and what it didn't verify, and writes `NOT DONE: ...` instead of rounding a partial pass up.
 
 ## What's inside
@@ -39,6 +39,7 @@ templates/spacing-lint.mjs                  # lint: spacing scale, line-height, 
 templates/alignment-guard.mjs               # browser checks: edges, rows, baselines, gaps, overlays, stub lines, wrapped code
 templates/typography-check.mjs              # type scale, leading, line length, rhythm, alignment lines
 templates/palette-check.mjs                 # colours, hue families, WCAG contrast
+templates/consistency-check.mjs             # icon fonts, fallback fonts, radii, borders, strokes, shadows, svg scale, tables, text
 templates/compare-sheets.mjs                # every page of a before and an after file side by side, with the share of changed pixels
 templates/align.config.example.json         # a complete example check config, one section per component
 templates/align.config.print.example.json   # the same for a printed document
@@ -115,7 +116,7 @@ A printed sheet has no breakpoints and no hover, but it drifts the same way: a p
 
 - **One fixed viewport.** Set `"allowSingleViewport": true` and the sheet size (794x1123 for A4 at 96 dpi). Give each sheet `min-height` instead of `height`, and add a `size` check on it: content that no longer fits pushes the sheet taller, and the check fails.
 - **A print preset.** `templates/tokens.print-a4.css` has a modular type scale (12/16/20/24/32/40, adjacent steps 1.2x to 1.33x) and one `--inset`, the text-left shared by boxes, lists and table cells. Start the config from `templates/align.config.print.example.json`.
-- **Four more checks.**
+- **Five more checks.**
 
 | Check | What fails |
 |---|---|
@@ -123,6 +124,7 @@ A printed sheet has no breakpoints and no hover, but it drifts the same way: a p
 | `noWrap` in `alignment-guard.mjs` | A terminal or code block that renders more lines than it has: a command wrapped inside a narrow box |
 | `typography-check.mjs` | Adjacent font sizes more than 1.34x or less than 1.2x apart, prose leading below 1.5x, a paragraph wider than 40em, block gaps that are not multiples of 8px, a heading nearer to what precedes it than to what follows, text starting off the alignment lines |
 | `palette-check.mjs` | Too many colours, a hue family outside the palette, text below 4.5:1 (3:1 for large text), saturated fills over 10% of the page |
+| `consistency-check.mjs` | Icon characters drawn by more than one font or by an emoji font, fallback fonts (with the exact characters), more than 4 corner radii or svg radii off the HTML scale, more than 3 border widths, more than 2 svg stroke widths, panels where only some have a shadow, illustrations at different scales, tables with different first-column widths, mixed ellipses, quotes or spellings, a `<title>` in another script than the page |
 
 The example in `docs/demo/print` is a quick start for an invented command-line tool, built twice from the same text: once with the CSS of a first draft written without the skill, once with the skill. The text is fictional; nothing in it is real. `node scripts/print-check.mjs` measures both pages:
 
@@ -133,10 +135,11 @@ The example in `docs/demo/print` is a quick start for an invented command-line t
 | Stub last lines | 2 | 0 |
 | Font sizes in use | 9 | 5 |
 | Typography violations | 45 | 0 |
+| Consistency violations | 5 | 0 |
 | Colours | 25 | 19 |
 | Hue families outside the palette | 1 | 0 |
 
-**Look at the result, too.** The guards see what they were told to look for. When this example was fixed, a side-by-side view of the two pages showed a command wrapped inside a terminal, which no check covered; `noWrap` exists because of that. `compare-sheets.mjs` makes the view one command, and prints the share of pixels that changed on each sheet, so the pages that moved most get looked at first:
+**Look at the result, too.** The guards see what they were told to look for. When this example was fixed, a side-by-side view of the two pages showed a command wrapped inside a terminal, which no check covered; `noWrap` exists because of that. `compare-sheets.mjs` makes the view one command. It prints the share of pixels that changed on each sheet, so the pages that moved most get looked at first, and it lists every block of text whose wording did not change but now takes more lines (`--strict` fails on that). A fix that pushes a sentence from one line onto two is easy to miss and no other check sees it; a fix to a table column width did exactly that, and this list shows it:
 
 ```bash
 node templates/compare-sheets.mjs before.html after.html --out sheets   # sheet-01.png ... and before-after.pdf
@@ -225,7 +228,7 @@ The same treatment for the print example (fictional text; one A4 sheet is 794px 
 
 **Which rules are only for CJK text?** In `typography-check.mjs`, the leading floor (1.5x) and the 40em line length apply to paragraphs that contain CJK characters, following the W3C notes on Chinese text layout. Latin text is not measured for either. Change `--prose-lh` and `--measure` if your script needs other numbers.
 
-**What can't it see?** The inside of SVG illustrations, content drawn by CSS, and taste. In one run a list bullet written as a CSS escape rendered as ",2" and passed every check, so look at every page once the guards are green.
+**What can't it see?** Whether an illustration is good (the checks read its radii, stroke widths and scale, not the drawing), content drawn by CSS, a sentence whose wording changed and now wraps (`compare-sheets` only compares blocks with the same words), and taste. In one run a list bullet written as a CSS escape rendered as ",2" and passed every check, so look at every page once the guards are green.
 
 ## License
 

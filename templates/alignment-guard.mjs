@@ -93,7 +93,14 @@ function measureInPage([sels, rowOf]) {
     const lr = charRect(last, lt.length - 1);
     if (!fr || !lr) return { baseline: null, textLeft: null, textRight: null };
     const { a, d } = metrics(first.parentElement);
-    return { baseline: fr.top + (fr.height - (a + d)) / 2 + a, textLeft: fr.left, textRight: lr.right };
+    // text-left is where the line's ink starts: an inline icon (svg) in front of the first character counts
+    let left = fr.left;
+    for (const ic of el.querySelectorAll("svg")) {
+      if (!(ic.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING)) break;
+      const b = ic.getBoundingClientRect();
+      if (b.width >= 1 && b.height >= 1) { left = Math.min(left, b.left); break; }
+    }
+    return { baseline: fr.top + (fr.height - (a + d)) / 2 + a, textLeft: left, textRight: lr.right };
   };
   const label = (el) => {
     const qa = el.getAttribute("data-qa");
