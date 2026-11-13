@@ -75,6 +75,20 @@ function measureInPage([sels, rowOf]) {
     });
     const out = []; let n; while ((n = walk.nextNode())) out.push(n); return out;
   };
+  // True baseline: a zero-size inline-block sits on the baseline of its line, so its bottom edge is the baseline.
+  // Glyph rect + canvas font metrics (the fallback below) are off by a pixel or two when the first glyph comes from a
+  // fallback font, for example CJK text next to Latin or code in the same row. Skipped in flex/grid parents, where the
+  // probe would become an item and move its neighbours.
+  const probeBaseline = (node) => {
+    const parent = node.parentElement;
+    if (!parent || /flex|grid/.test(getComputedStyle(parent).display)) return null;
+    const p = document.createElement("span");
+    p.style.cssText = "display:inline-block;width:0;height:0;padding:0;margin:0;border:0";
+    parent.insertBefore(p, node);
+    const y = p.getBoundingClientRect().bottom;
+    p.remove();
+    return Number.isFinite(y) ? y : null;
+  };
   const charRect = (node, idx) => { const r = document.createRange(); r.setStart(node, idx); r.setEnd(node, idx + 1); return r.getClientRects()[0]; };
   const text = (el) => {
     if (/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) {
@@ -100,7 +114,7 @@ function measureInPage([sels, rowOf]) {
       const b = ic.getBoundingClientRect();
       if (b.width >= 1 && b.height >= 1) { left = Math.min(left, b.left); break; }
     }
-    return { baseline: fr.top + (fr.height - (a + d)) / 2 + a, textLeft: left, textRight: lr.right };
+    return { baseline: probeBaseline(first) ?? fr.top + (fr.height - (a + d)) / 2 + a, textLeft: left, textRight: lr.right };
   };
   const label = (el) => {
     const qa = el.getAttribute("data-qa");

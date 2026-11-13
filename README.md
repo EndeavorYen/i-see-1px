@@ -26,6 +26,7 @@ You can't unsee it. Now neither can your agent.
 - **Lint for magic px.** `spacing-lint.mjs` flags off-scale spacing, raw line-heights and stray font sizes in CSS, `<style>` blocks and inline styles. Absolute units (`mm`, `cm`, `in`, `pt`, `pc`) are converted to px and held to the same scale.
 - **Measured checks at multiple viewports.** `alignment-guard.mjs` runs `getBoundingClientRect` checks in headless Chromium at every viewport (e.g. 1280 and 768) and every open state (popover, dialog), and takes screenshots.
 - **Printed documents too.** The same tools run on an A4 sheet or the HTML source of a PDF: one fixed viewport, a check that no sheet is pushed taller, paired boxes of equal height, and no stub last lines. See [Printed documents](#printed-documents-a4-pdf).
+- **Markdown documents too.** `markdown-check.mjs` fails on the defects a renderer hides: a second H1, a skipped heading level, an empty table header cell, a ragged table row, consecutive lines that merge into one paragraph, a dead `#anchor`. `markdown-preview.mjs` renders the file so the guard can measure its tables, code blocks and wrapped text. See [Markdown documents](#markdown-documents-readme-guides).
 - **Type and colour, measured.** `typography-check.mjs` checks the type scale, leading, line length, vertical rhythm and alignment lines. `palette-check.mjs` counts the colours and hue families a page really renders with, and their WCAG contrast. `consistency-check.mjs` checks what a designer sees at a glance: icons drawn by one font, one corner-radius scale for boxes and illustrations, few border and stroke widths, shadows on all panels or none, every illustration at one scale, tables with one first-column width, and consistent ellipses, quotes and spelling.
 - **An honest done-claim.** The agent pastes the guard and lint output, lists what it checked by eye and what it didn't verify, and writes `NOT DONE: ...` instead of rounding a partial pass up.
 
@@ -43,10 +44,15 @@ templates/consistency-check.mjs             # icon fonts, fallback fonts, radii,
 templates/compare-sheets.mjs                # every page of a before and an after file side by side, with the share of changed pixels
 templates/align.config.example.json         # a complete example check config, one section per component
 templates/align.config.print.example.json   # the same for a printed document
+templates/markdown-check.mjs                # Markdown structure: headings, tables, merged lines, fences, anchors, whitespace
+templates/markdown-preview.mjs              # renders a .md file to a page the guard can measure (needs marked)
+templates/markdown-preview.css              # the preview sheet, tokens only
+templates/align.config.markdown.example.json # the guard config for a rendered Markdown document
 scripts/readme-check.mjs                    # this README's own layout check (we dogfood it)
 scripts/site-check.mjs                      # lint + guard for the demo site in docs/ (dogfood too)
 scripts/print-check.mjs                     # every tool on the A4 print example, with and without
 scripts/make-compare.mjs                    # makes the print comparison images from the live site
+scripts/markdown-selftest.mjs               # the Markdown path on docs/demo/markdown: a bad file trips every rule, a good one passes
 docs/                                       # the GitHub Pages site and the live demo pages (web and A4)
 ```
 
@@ -107,8 +113,26 @@ node scripts/readme-check.mjs   # README pairs, widths, captions, headings, pale
 node scripts/site-check.mjs     # spacing lint + alignment guard on docs/index.html at 1280 and 768, in both example states
 node scripts/print-check.mjs    # every tool on the A4 example: "with" is clean, "without" fails each one (--sheets DIR adds the side-by-side pages)
 node scripts/typography-selftest.mjs   # single-line labels are not wrapped prose (issue #2); real wraps still are
+node scripts/markdown-selftest.mjs      # needs marked too: docs/demo/markdown bad.md trips every rule, good.md renders clean
 node scripts/make-compare.mjs   # regenerates docs/compare/06-10 from the live site (--only terms,orphan)
 ```
+
+## Markdown documents (README, guides)
+
+A README drifts like a page does, and a renderer hides it: three `✅` lines with no bullets become one paragraph, a four-column table squeezes its first column to one character, a header cell is blank. Check the source and the rendered page.
+
+```bash
+node templates/markdown-check.mjs README.md                                     # structure: headings, tables, merged lines, fences, anchors, whitespace
+npm i -D marked
+node templates/markdown-preview.mjs README.md --out preview --lang en           # --lang = the language of the text
+cp templates/align.config.markdown.example.json align.config.json              # next to preview/, then delete what the document has no part for
+node templates/alignment-guard.mjs align.config.json --summary                  # tables, code blocks, wrapped text and stub lines at 1280 and 768
+```
+
+- **`--lang` matters.** CJK text falls back to a different font per language. That fallback is what puts a table row's baselines 1px apart when the cells mix CJK, Latin and inline code. The guard reads baselines with a zero-size probe on the real line, not from glyph rectangles, so those rows now measure true.
+- **The preview is a stand-in.** It is not GitHub or your docs site. Say so in the report and mark numbers that depend on its CSS as env-dependent. Fix the source, not the preview CSS.
+- **A short first column collapses** when the other columns hold long cells. Shorten the cells, drop a column, or write a list. Use `overflow-wrap: break-word`; `anywhere` makes it worse.
+- `docs/demo/markdown` has a `bad.md` that trips every structure rule and a `good.md` that renders clean; `scripts/markdown-selftest.mjs` runs both.
 
 ## Printed documents (A4, PDF)
 

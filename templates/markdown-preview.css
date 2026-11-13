@@ -1,0 +1,26 @@
+/* Preview sheet for markdown-preview.mjs. Loads after tokens.css; every spacing, size and line height is a token.
+   Replace it with your renderer's own CSS when you want to measure that renderer instead. */
+* { box-sizing: border-box; }
+body { margin: 0; padding: var(--space-6) var(--space-4); font-size: var(--fs-md); line-height: var(--lh-md); color: #1f2328; background: #fff; }
+/* break-word, not anywhere: "anywhere" lets a table column shrink to one character */
+article { width: min(var(--content-col), 100%); margin-inline: auto; overflow-wrap: break-word; }
+
+h1 { font-size: var(--fs-2xl); line-height: var(--lh-2xl); margin: 0 0 var(--space-4); }
+h2 { font-size: var(--fs-xl); line-height: var(--lh-xl); margin: var(--space-8) 0 var(--space-4); padding-bottom: var(--space-2); border-bottom: 1px solid #d0d7de; }
+h3 { font-size: var(--fs-lg); line-height: var(--lh-lg); margin: var(--space-6) 0 var(--space-3); }
+h4 { font-size: var(--fs-md); line-height: var(--lh-md); margin: var(--space-6) 0 var(--space-2); }
+p, ul, ol, blockquote, pre, table { margin: 0 0 var(--space-4); }
+ul, ol { padding-left: var(--space-6); }
+li > p { margin: 0 0 var(--space-2); }
+li > ul, li > ol, li > pre { margin: var(--space-2) 0 var(--space-2); }
+
+/* inline code: a line height below the paragraph's never grows the line box; no side padding, so a cell that starts with code keeps its text-left */
+code { font-family: ui-monospace, Consolas, monospace; font-size: var(--fs-sm); line-height: var(--lh-xs); background: #eff1f3; border-radius: var(--radius-sm); }
+pre { overflow-x: auto; padding: var(--space-4); background: #f6f8fa; border-radius: var(--radius-md); }
+pre code { display: block; line-height: var(--lh-sm); background: none; white-space: pre; }
+
+blockquote { padding: 0 var(--space-4); border-left: var(--space-1) solid #d0d7de; color: #57606a; }
+
+table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); line-height: var(--lh-sm); }
+th, td { padding: var(--space-2) var(--space-3); border: 1px solid #d0d7de; text-align: left; vertical-align: baseline; }
+th { background: #f6f8fa; }

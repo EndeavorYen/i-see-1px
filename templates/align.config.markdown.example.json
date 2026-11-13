@@ -1,0 +1,39 @@
+{
+  "_note": "Starting config for a rendered Markdown document (README, guide), measured through templates/markdown-preview.mjs: one content column, tables and code blocks span it, text wraps, body type on the 4px grid, no stub last lines. Delete only what the document does not have (no tables? drop the table checks). Keep every viewport you support.",
+  "tolerance": 0.5,
+  "viewports": [
+    { "width": 1280, "height": 900 },
+    { "width": 768, "height": 1024 }
+  ],
+  "screenshots": "shots",
+  "pages": [
+    {
+      "name": "markdown",
+      "url": "preview/index.html",
+      "noOverflow": true,
+      "checks": [
+        { "_section": "page", "type": "type", "name": "type scale: 12/14/16/20/24/32, line heights on the 4px grid",
+          "selectors": ["article, article *"], "grid": 4, "maxDistinct": 6,
+          "fontSizes": [12, 14, 16, 20, 24, 32], "lineHeights": [16, 20, 24, 28, 32, 40] },
+        { "_section": "column", "type": "column", "name": "every top-level block shares the content column left edge",
+          "selectors": ["[data-qa=doc] > h1", "[data-qa=doc] > h2", "[data-qa=doc] > h3", "[data-qa=doc] > h4", "[data-qa=doc] > p", "[data-qa=doc] > ul", "[data-qa=doc] > ol", "[data-qa=doc] > blockquote", "[data-qa=doc] > pre", "[data-qa=doc] > table"],
+          "match": ["left"] },
+        { "_section": "column", "type": "column", "name": "spanning blocks (rules under H2, quotes, code, tables) share the right edge",
+          "selectors": ["[data-qa=doc] > h2", "[data-qa=doc] > blockquote", "[data-qa=doc] > pre", "[data-qa=doc] > table"],
+          "match": ["right"] },
+        { "_section": "table", "type": "column", "name": "table: header and first-column cells share text-left",
+          "selectors": ["[data-qa=table] tr > :first-child"], "match": ["textLeft"] },
+        { "_section": "table", "type": "row", "name": "table header cells share baseline",
+          "selectors": ["[data-qa=table] thead th"], "match": ["top", "baseline"], "groupBy": "row", "minCount": 2 },
+        { "_section": "table", "type": "row", "name": "table cells in one row share first-line baseline",
+          "selectors": ["[data-qa=table] tbody td"], "match": ["top", "baseline"], "groupBy": "row", "minCount": 2 },
+        { "_section": "text", "type": "noClip", "name": "long text and tables wrap or fit, never clipped",
+          "selectors": ["[data-qa=doc] > p", "[data-qa=doc] li", "[data-qa=table] td", "[data-qa=table] th", "[data-qa=doc] > blockquote"] },
+        { "_section": "text", "type": "noWrap", "name": "code lines never wrap (a command stays on one line)",
+          "selectors": ["[data-qa=code] code"] },
+        { "_section": "text", "type": "widow", "name": "no wrapped paragraph or cell ends in a stub line (min 4em)",
+          "selectors": ["[data-qa=doc] > p", "[data-qa=doc] li", "[data-qa=table] td", "[data-qa=table] th", "[data-qa=doc] > blockquote"], "minEm": 4 }
+      ]
+    }
+  ]
+}

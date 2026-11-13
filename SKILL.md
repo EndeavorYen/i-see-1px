@@ -4,7 +4,9 @@ description: >-
   Use when building (including from an empty repo or a vague "make it look neat"
   request), editing, or reviewing frontend layout, CSS, UI polish, typography,
   responsive breakpoints, or alignment — anything where edges, baselines, line
-  heights, control heights, button widths, or spacing must line up. Start from
+  heights, control heights, button widths, or spacing must line up. Also for a
+  rendered Markdown document (README, guide) whose tables, lists and code blocks
+  must render cleanly. Start from
   the shipped check config, measure every viewport and open state, and do not
   claim done until a pasted self-audit shows the guard and the lint at zero.
 ---
@@ -15,6 +17,7 @@ Measure, never eyeball. A number from `getBoundingClientRect` beats any judgemen
 - `align.config.example.json`: a **complete** check config, one `_section` per component
 - `alignment-guard.mjs`: multi-viewport, multi-state browser checks
 - `spacing-lint.mjs`: spacing plus line-height and font-size
+- `markdown-check.mjs`, `markdown-preview.mjs`, `align.config.markdown.example.json`: the Markdown path
 
 A vague request ("make it tidy, good on laptop and tablet") still means every rule below. Turn the request into checks; don't wait for numbers.
 
@@ -24,6 +27,7 @@ A vague request ("make it tidy, good on laptop and tablet") still means every ru
 - **Empty repo or new page** → the from-zero path. Write no component CSS before Z4.
 - **The project has no tokens, guard or lint** → do Z1–Z3 first.
 - **A printed document, PDF or fixed-size sheet** → the print path below, then the rules.
+- **A Markdown document (README, guide, docs page)** → the Markdown path below, then the rules.
 
 ## From zero (and for any project missing the tools)
 
@@ -47,6 +51,23 @@ Same rules, different set-up. Check the HTML source in a browser, then print it 
 2. Rename the `data-qa` hooks. Boxes, lists and table cells start their text on one `--inset`.
 3. Add the document checks: the guard's `widow` (no wrapped paragraph ends in a stub line), `node typography-check.mjs <page.html>` (scale, leading, line length, rhythm, alignment lines) and `node palette-check.mjs <page.html>` (colours, hue families, contrast) and `node consistency-check.mjs <page.html>` (icons from one font, one radius scale, few border and stroke widths, shadows on all panels or none, illustrations at one scale, one table column width, consistent text). The leading and line-length rules apply to CJK text; pass `--prose-lh`, `--measure` and `--lines` for your own numbers.
 4. Once the guards pass, run `node compare-sheets.mjs before.html after.html --out sheets --strict` and look at every pair, starting with the sheets that changed most. `--strict` fails when a block of text with the same words now takes more lines: a fix that moves a sentence from one line to two is a regression, even when every guard is green. The guards cannot see inside SVG illustrations or content drawn by CSS (a list bullet written as a CSS escape rendered as ",2" and passed every check), and a fix can break something nobody asked about (a command wrapped inside a terminal after its padding grew). A new defect found this way becomes a new check, not just a fix.
+
+## Markdown documents (README, guides)
+
+A renderer hides Markdown defects until a reader sees them: lines that merge into one paragraph, a table column squeezed to one character, a blank header cell. Check the source, then the rendered page.
+
+1. **Source.** `node templates/markdown-check.mjs README.md` fails on a second H1, a skipped heading level, an empty section, an empty table header cell, a ragged table row, consecutive lines that merge into one paragraph (a "✅ ..." list with no bullets), an unclosed or unspaced code fence, a dead `#anchor`, trailing whitespace, tabs and double blank lines.
+2. **Rendered page.** `npm i -D marked`, then `node templates/markdown-preview.mjs README.md --out preview --lang <language of the text>`. Copy `templates/align.config.markdown.example.json` next to `preview/`, delete only the checks the document has no part for, and run the guard at 1280 and 768. `--lang` matters: CJK text falls back to a different font per language, and the fallback font is what moves baselines.
+3. **Say what the preview is.** It stands in for the real renderer (GitHub, GitLab, a docs site). Name that in the report and mark numbers that depend on its CSS as env-dependent.
+4. **Fix the source, not the preview CSS.** A guard failure that disappears only when you restyle the preview is not a fix.
+
+Commonly missed in documents:
+
+- [ ] **A short first column collapses.** When other columns hold long cells, a table squeezes a short first column to one character per line (CJK may break between any two characters). Shorten the cells, drop a column, or write a list. `overflow-wrap: anywhere` makes it worse; use `break-word`.
+- [ ] **A blank header cell.** A table with an empty corner cell has no label for that column. Give it one.
+- [ ] **A cell that starts with inline code** starts its text one padding later than its neighbours: give `code` no side padding.
+- [ ] **Inline code taller than its line.** Give `code` a line height at or below the paragraph's, never above, or it grows the line box.
+- [ ] **A code line that wraps.** A command that wraps is a different command to a copy-and-paste reader. Let the block scroll; keep `noWrap`.
 
 ## Step 0 — inventory and "before"
 
